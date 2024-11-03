@@ -1,7 +1,7 @@
-import internal/lheap
 import gleam/dict
 import gleam/option.{type Option, None, Some}
 import gleam/result
+import internal/lheap
 
 // Since reprioritizing nodes is difficult and expensive in a leftist heap
 // I track the minimum distance for each element and the previous node.
