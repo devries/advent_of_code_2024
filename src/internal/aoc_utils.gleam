@@ -1,3 +1,4 @@
+import gleam/list
 import gleam/result
 import gleam/string
 import simplifile
@@ -17,4 +18,15 @@ pub fn solution_or_error(v: Result(String, String)) -> String {
     Ok(solution) -> solution
     Error(error) -> "ERROR: " <> error
   }
+}
+
+pub fn chunk_around_empty_strings(lines: List(String)) -> List(List(String)) {
+  lines
+  |> list.chunk(fn(x) { x == "" })
+  |> list.filter(fn(x) {
+    case x {
+      [item, ..] if item == "" -> False
+      _ -> True
+    }
+  })
 }
