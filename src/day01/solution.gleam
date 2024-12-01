@@ -39,15 +39,11 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
 pub fn solve_p2(lines: List(String)) -> Result(String, String) {
   use #(l1, l2) <- result.map(parse_lines(lines))
 
-  // Sort lists
-  let sl1 = list.sort(l1, int.compare)
-  let sl2 = list.sort(l2, int.compare)
-
   // Map the first list to a function which counts occurrences in the second list
   // and then multiplies them by the value
-  sl1
+  l1
   |> list.map(fn(x) {
-    let c = count_sorted_int_acc(x, sl2, 0)
+    let c = list.count(l2, fn(o) { o == x })
     c * x
   })
   |> int.sum
@@ -87,27 +83,7 @@ fn parse_lines(lines: List(String)) -> Result(#(List(Int), List(Int)), String) {
 fn parse_line(line: String) -> Result(List(Int), String) {
   line
   |> string.split(" ")
-  |> list.filter(fn(v) {
-    case v {
-      "" -> False
-      _ -> True
-    }
-  })
+  |> list.filter(fn(v) { v != "" })
   |> list.try_map(int.parse)
   |> result.replace_error("Unable to parse line: " <> line)
-}
-
-// Recursive counting function with accumulator for sorted lists
-fn count_sorted_int_acc(x: Int, l: List(Int), acc: Int) -> Int {
-  case l {
-    [first, ..rest] -> {
-      case x, first {
-        x, f if x == f -> count_sorted_int_acc(x, rest, acc + 1)
-        x, f if x > f -> count_sorted_int_acc(x, rest, acc)
-        x, f if x < f -> acc
-        _, _ -> acc
-      }
-    }
-    [] -> acc
-  }
 }
