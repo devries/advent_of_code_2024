@@ -15,8 +15,7 @@ pub fn main() {
       // If the file was converting into a list of lines
       // successfully then run each part of the problem
       io.println("Part 1: " <> aoc_utils.solution_or_error(solve_p1(lines)))
-      io.println("Part 2: " <> aoc_utils.solution_or_error(solve_p2(lines)))
-      io.println("Part 2b: " <> aoc_utils.solution_or_error(solve_p2b(lines)))
+      io.println("Part 2: " <> aoc_utils.solution_or_error(solve_p2b(lines)))
     }
     Error(_) -> io.println("Error reading file")
   }
