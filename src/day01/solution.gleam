@@ -2,6 +2,7 @@ import gleam/dict
 import gleam/int
 import gleam/io
 import gleam/list
+import gleam/pair
 import gleam/result
 import gleam/string
 import internal/aoc_utils
@@ -73,29 +74,16 @@ pub fn solve_p2b(lines: List(String)) -> Result(String, String) {
 fn parse_lines(lines: List(String)) -> Result(#(List(Int), List(Int)), String) {
   use combined <- result.try(list.try_map(lines, parse_line))
 
-  let first =
-    list.map(combined, fn(couple) {
-      case couple {
-        [x, _] -> Ok(x)
-        _ -> Error("Unexpected format")
-      }
-    })
-    |> result.all
-
-  let second =
-    list.map(combined, fn(couple) {
-      case couple {
-        [_, x] -> Ok(x)
-        _ -> Error("Unexpected format")
-      }
-    })
-    |> result.all
-
-  case first, second {
-    Ok(x), Ok(y) -> Ok(#(x, y))
-    Error(e), _ -> Error(e)
-    _, Error(e) -> Error(e)
-  }
+  combined
+  |> list.try_fold(from: #([], []), with: fn(lists, couple) {
+    case couple {
+      [x, y] -> Ok(#([x, ..pair.first(lists)], [y, ..pair.second(lists)]))
+      _ ->
+        Error(
+          "Unexpected number of integers in line: " <> string.inspect(couple),
+        )
+    }
+  })
 }
 
 // Parse a line as space separated integers
