@@ -1,3 +1,4 @@
+import gleam/dict
 import gleam/int
 import gleam/io
 import gleam/list
@@ -15,6 +16,7 @@ pub fn main() {
       // successfully then run each part of the problem
       io.println("Part 1: " <> aoc_utils.solution_or_error(solve_p1(lines)))
       io.println("Part 2: " <> aoc_utils.solution_or_error(solve_p2(lines)))
+      io.println("Part 2b: " <> aoc_utils.solution_or_error(solve_p2b(lines)))
     }
     Error(_) -> io.println("Error reading file")
   }
@@ -45,6 +47,24 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
   |> list.map(fn(x) {
     let c = list.count(l2, fn(o) { o == x })
     c * x
+  })
+  |> int.sum
+  |> int.to_string
+}
+
+// After seeing Jonathan Paulson's video of his solution, I realize it is likely
+// much more efficient to create a dictionary of the counts for each element in
+// list 2, then run through list one looking up the counts.
+pub fn solve_p2b(lines: List(String)) -> Result(String, String) {
+  use #(l1, l2) <- result.map(parse_lines(lines))
+
+  let counts = count_values(l2)
+
+  l1
+  |> list.map(fn(x) {
+    dict.get(counts, x)
+    |> result.unwrap(0)
+    |> int.multiply(x)
   })
   |> int.sum
   |> int.to_string
@@ -86,4 +106,11 @@ fn parse_line(line: String) -> Result(List(Int), String) {
   |> list.filter(fn(v) { v != "" })
   |> list.try_map(int.parse)
   |> result.replace_error("Unable to parse line: " <> line)
+}
+
+fn count_values(l: List(a)) -> dict.Dict(a, Int) {
+  list.fold(l, from: dict.new(), with: fn(d, x) {
+    let current_count = dict.get(d, x) |> result.unwrap(0)
+    dict.insert(d, for: x, insert: current_count + 1)
+  })
 }

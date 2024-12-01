@@ -20,3 +20,9 @@ pub fn part2_test() {
   solution.solve_p2(lines)
   |> should.equal(Ok("31"))
 }
+
+pub fn part2b_test() {
+  let lines = string.split(testinput, "\n")
+  solution.solve_p2b(lines)
+  |> should.equal(Ok("31"))
+}
