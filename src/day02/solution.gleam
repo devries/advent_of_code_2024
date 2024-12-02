@@ -1,3 +1,4 @@
+import gleam/bool
 import gleam/int
 import gleam/io
 import gleam/list
@@ -94,6 +95,11 @@ fn tolerable_changes(changes: List(Change)) -> Bool {
 }
 
 pub fn is_really_safe(record: List(Int)) -> Bool {
+  // If it satisfies the regular safety check, we are fine.
+  use <- bool.guard(is_safe(record), True)
+
+  // If the regular check does not pass, we try removing each level
+  // to see if removing one will cause it to pass.
   record
   |> list.combinations(list.length(record) - 1)
   |> list.any(fn(subrecord) {
