@@ -35,10 +35,8 @@ pub fn solve_p1(content: String) -> Result(String, String) {
 // Part 2
 pub fn solve_p2(content: String) -> Result(String, String) {
   let assert Ok(re_mul) = regexp.from_string("mul\\((\\d+),(\\d+)\\)")
-  let assert Ok(re_dont) = regexp.from_string("don't\\(\\)")
 
-  regexp.split(with: re_dont, content: content)
-  |> get_doable_regions
+  get_doable_regions(content)
   |> list.map(regexp.scan(with: re_mul, content: _))
   |> list.flatten
   |> list.map(calculate_match)
@@ -59,8 +57,10 @@ fn calculate_match(match: regexp.Match) -> Int {
   })
 }
 
-fn get_doable_regions(regions: List(String)) -> List(String) {
-  case regions {
+fn get_doable_regions(content: String) -> List(String) {
+  let assert Ok(re_dont) = regexp.from_string("don't\\(\\)")
+
+  case regexp.split(with: re_dont, content: content) {
     [f] -> [f]
     [f, ..rest] -> get_doable_regions_acc(rest, [f])
     [] -> []
