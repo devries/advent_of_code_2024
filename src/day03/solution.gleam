@@ -3,7 +3,6 @@ import gleam/io
 import gleam/list
 import gleam/option.{None, Some}
 import gleam/regexp
-import gleam/result
 import internal/aoc_utils
 import simplifile
 
