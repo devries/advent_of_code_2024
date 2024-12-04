@@ -1,7 +1,7 @@
 # Advent of Code 2024
 
 [![Tests](https://github.com/devries/advent_of_code_2024/actions/workflows/test.yml/badge.svg)](https://github.com/devries/advent_of_code_2024/actions/workflows/test.yml)
-[![Stars: 6](https://img.shields.io/badge/⭐_Stars-6-yellow)](https://adventofcode.com/2024)
+[![Stars: 8](https://img.shields.io/badge/⭐_Stars-8-yellow)](https://adventofcode.com/2024)
 
 This year I am going to try to do Advent of Code in  [Gleam](https://gleam.run).
 To run a day's problems use the command
