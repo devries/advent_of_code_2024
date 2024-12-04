@@ -39,14 +39,8 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
 
   map
   |> dict.to_list
-  |> list.filter(fn(pl) {
-    // Filter to points with X or S
-    case pl.1 {
-      l if l == first_letter -> True
-      l if l == last_letter -> True
-      _ -> False
-    }
-  })
+  // Find X or S points
+  |> list.filter(fn(pl) { pl.1 == first_letter || pl.1 == last_letter })
   |> list.map(pair.first)
   |> list.map(fn(p) {
     // create spans of point horizontally, vertically, and in both diagonals
@@ -77,13 +71,8 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
 
   map
   |> dict.to_list
-  |> list.filter(fn(pl) {
-    case pl.1 {
-      // A marks the spot, find all center points
-      "A" -> True
-      _ -> False
-    }
-  })
+  // Find where "A"s are located
+  |> list.filter(fn(pl) { pl.1 == "A" })
   |> list.map(pair.first)
   |> list.map(fn(p) {
     // Get the four coordinates around each A
