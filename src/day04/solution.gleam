@@ -30,12 +30,7 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
   let word_reverse = list.reverse(word_forward)
   let assert Ok(first_letter) = string.first(word)
   let assert Ok(last_letter) = string.last(word)
-  let directions = [
-    point.new(1, 0),
-    point.new(0, 1),
-    point.new(1, 1),
-    point.new(1, -1),
-  ]
+  let directions = [#(1, 0), #(0, 1), #(1, 1), #(1, -1)]
 
   map
   |> dict.to_list
@@ -76,7 +71,7 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
   |> list.map(pair.first)
   |> list.map(fn(p) {
     // Get the four coordinates around each A
-    [point.new(-1, -1), point.new(1, 1), point.new(-1, 1), point.new(1, -1)]
+    [#(-1, -1), #(1, 1), #(-1, 1), #(1, -1)]
     |> list.map(point.add(p, _))
     |> list.map(dict.get(map, _))
   })
@@ -102,7 +97,7 @@ fn parse(lines: List(String)) -> Dict(Point, String) {
 
   use map, c, x <- list.index_fold(characters, map)
 
-  let p = point.new(x, y)
+  let p = #(x, y)
   dict.insert(map, p, c)
 }
 
