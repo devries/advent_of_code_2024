@@ -92,11 +92,9 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
 
 fn parse(lines: List(String)) -> Dict(Point, String) {
   use map, line, y <- list.index_fold(lines, dict.new())
-
   let characters = string.to_graphemes(line)
 
   use map, c, x <- list.index_fold(characters, map)
-
   let p = #(x, y)
   dict.insert(map, p, c)
 }
