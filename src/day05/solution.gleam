@@ -37,7 +37,6 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
     })
     |> list.map(get_middle)
     |> result.all
-    |> result.replace_error("unable to find middle elements")
   })
 
   use middle_elements <- result.map({
@@ -71,14 +70,13 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
     reordered_pagesets
     |> list.map(get_middle)
     |> result.all
-    |> result.replace_error("unable to find middle elements")
   })
 
   use middle_elements <- result.map({
     middle_element_strings
     |> list.map(int.parse)
     |> result.all
-    |> result.replace_error("Unable to parse middle elements")
+    |> result.replace_error("Unable to parse middle integers")
   })
 
   int.sum(middle_elements)
@@ -101,12 +99,13 @@ fn make_opposing_rule(p: #(String, String)) -> String {
   p.1 <> "|" <> p.0
 }
 
-fn get_middle(items: List(a)) -> Result(a, Nil) {
+fn get_middle(items: List(a)) -> Result(a, String) {
   let length = list.length(items)
 
   items
   |> list.drop(length / 2)
   |> list.first
+  |> result.replace_error("Unable to find middle of " <> string.inspect(items))
 }
 
 fn reorder_list(pages: List(String), ruleset: Set(String)) -> List(String) {
@@ -128,16 +127,14 @@ fn reorder_list(pages: List(String), ruleset: Set(String)) -> List(String) {
     Error(Nil) -> pages
     Ok(vals) -> {
       // This swaps the two elements that are out of order
-      let new_order =
-        list.fold(over: pages, from: [], with: fn(acc, page) {
-          case page {
-            p if p == vals.0 -> [vals.1, ..acc]
-            p if p == vals.1 -> [vals.0, ..acc]
-            _ -> [page, ..acc]
-          }
-        })
-        |> list.reverse
-      reorder_list(new_order, ruleset)
+      list.map(pages, fn(page) {
+        case page {
+          p if p == vals.0 -> vals.1
+          p if p == vals.1 -> vals.0
+          _ -> page
+        }
+      })
+      |> reorder_list(ruleset)
     }
   }
 }
