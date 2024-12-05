@@ -110,23 +110,29 @@ fn get_middle(items: List(a)) -> Result(a, Nil) {
 }
 
 fn reorder_list(pages: List(String), ruleset: Set(String)) -> List(String) {
-  let bad_pairs =
+  let bad_pair =
     pages
     |> list.combination_pairs
-    |> list.filter(fn(pair) {
-      make_opposing_rule(pair)
-      |> set.contains(ruleset, _)
+    |> list.fold_until(Error(Nil), fn(_, pair) {
+      // On first instance of a pair that is in the wrong order return it
+      let found =
+        make_opposing_rule(pair)
+        |> set.contains(ruleset, _)
+      case found {
+        True -> list.Stop(Ok(pair))
+        False -> list.Continue(Error(Nil))
+      }
     })
 
-  case bad_pairs {
-    [] -> pages
-    [first, ..] -> {
+  case bad_pair {
+    Error(Nil) -> pages
+    Ok(vals) -> {
       // This swaps the two elements that are out of order
       let new_order =
         list.fold(over: pages, from: [], with: fn(acc, page) {
           case page {
-            p if p == first.0 -> [first.1, ..acc]
-            p if p == first.1 -> [first.0, ..acc]
+            p if p == vals.0 -> [vals.1, ..acc]
+            p if p == vals.1 -> [vals.0, ..acc]
             _ -> [page, ..acc]
           }
         })
