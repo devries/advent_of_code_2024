@@ -45,8 +45,7 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
     |> result.replace_error("unable to find guard")
   })
 
-  let obstructions = obstruct(guard, grid)
-  set.drop(obstructions, [guard.position])
+  let obstructions = obstruct(guard, grid) |> set.drop([guard.position])
   // plot_grid_with_obstructions(grid, obstructions)
 
   set.size(obstructions)
