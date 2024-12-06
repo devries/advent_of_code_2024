@@ -49,13 +49,7 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
   set.drop(obstructions, [guard.position])
   // plot_grid_with_obstructions(grid, obstructions)
 
-  // Let's try to test each obstruction to make sure it cycles again
-  // adding an obstruction could disrupt previous steps
-  list.filter(set.to_list(obstructions), fn(obs) {
-    let grid = dict.insert(grid, obs, "#")
-    continue_test_for_cycle(guard, grid, set.from_list([guard]))
-  })
-  |> list.length
+  set.size(obstructions)
   |> int.to_string
 }
 
@@ -124,7 +118,7 @@ fn wander_acc(p: Person, grid: Dict(Point, String), acc: set.Set(Point)) -> Int 
 }
 
 fn obstruct(p: Person, grid: Dict(Point, String)) -> set.Set(Point) {
-  obstruct_acc(p, grid, set.new())
+  obstruct_acc(p, grid, set.from_list([p.position]), set.new())
 }
 
 // In this case the accumulator will be a tuple of the set of position/direction states
@@ -132,32 +126,53 @@ fn obstruct(p: Person, grid: Dict(Point, String)) -> set.Set(Point) {
 fn obstruct_acc(
   p: Person,
   grid: Dict(Point, String),
+  visited: set.Set(Point),
   obstructions: set.Set(Point),
 ) -> set.Set(Point) {
   case forward(p, grid) {
     Error(OffMap) -> obstructions
-    Error(Collision) -> obstruct_acc(right(p), grid, obstructions)
+    Error(Collision) -> obstruct_acc(right(p), grid, visited, obstructions)
     Ok(pnew) -> {
       // Since the new position is unobstructed, test if an obstruction would have caused
       // a cycle
-      let new_obstructions = case test_for_cycle(p, grid) {
+      let new_obstructions = case test_for_cycle(p, pnew, grid, visited) {
         True -> set.insert(obstructions, pnew.position)
         False -> obstructions
       }
-      obstruct_acc(pnew, grid, new_obstructions)
+      obstruct_acc(
+        pnew,
+        grid,
+        set.insert(visited, pnew.position),
+        new_obstructions,
+      )
     }
   }
 }
 
-fn test_for_cycle(p: Person, grid: Dict(Point, String)) -> Bool {
-  case forward(p, grid) {
-    Ok(pnew) ->
+// Check for a cycle when starting at position p, with next step as pnew
+// in the grid grid having visited the set of visited points.
+fn test_for_cycle(
+  p: Person,
+  pnew: Person,
+  grid: Dict(Point, String),
+  visited: set.Set(Point),
+) -> Bool {
+  // This is somewhat tortured logic, but if it is possible to take a step forward
+  // and you haven't been in that location before, then explore it as a potential
+  // obstruction location.
+  case set.contains(visited, pnew.position) {
+    // In this case the guard has walked there and an obstruction has already
+    // been checked for that position
+    True -> False
+
+    // Since the guard has not been in that location, try putting an obstruction
+    // in that location.
+    False ->
       continue_test_for_cycle(
         p,
         dict.insert(grid, pnew.position, "#"),
         set.from_list([p]),
       )
-    _ -> False
   }
 }
 
