@@ -7,10 +7,11 @@ import simplifile
 pub fn read_lines(
   from filepath: String,
 ) -> Result(List(String), simplifile.FileError) {
-  simplifile.read(from: filepath)
-  // Be sure to get rid of final newline
-  |> result.map(string.trim_end)
-  |> result.map(string.split(_, "\n"))
+  use content <- result.map(simplifile.read(from: filepath))
+
+  content
+  |> string.trim_end
+  |> string.split("\n")
 }
 
 pub fn solution_or_error(v: Result(String, String)) -> String {
