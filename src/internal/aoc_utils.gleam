@@ -9,7 +9,7 @@ pub fn read_lines(
 ) -> Result(List(String), simplifile.FileError) {
   simplifile.read(from: filepath)
   // Be sure to get rid of final newline
-  |> result.map(string.trim)
+  |> result.map(string.trim_end)
   |> result.map(string.split(_, "\n"))
 }
 
