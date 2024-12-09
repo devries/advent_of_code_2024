@@ -44,6 +44,8 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
   |> int.to_string
 }
 
+// A group has a file with id of number and length of length
+// followed by spaces spaces.
 type Group {
   Group(number: Int, length: Int, spaces: Int)
 }
