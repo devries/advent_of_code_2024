@@ -147,7 +147,6 @@ fn defrag(
   tail_stack: List(Group),
 ) -> deque.Deque(Group) {
   case deque.pop_back(drive) {
-    // Error(_) -> restore_tail_stack(tail_stack, deque.new())
     Error(_) -> deque.from_list(tail_stack)
     Ok(#(tail, rest_drive)) -> {
       case insert_group(rest_drive, tail, []) {
@@ -204,15 +203,5 @@ fn restore_stack(
   case stack {
     [] -> drive
     [first, ..rest] -> restore_stack(rest, deque.push_front(drive, first))
-  }
-}
-
-fn restore_tail_stack(
-  stack: List(Group),
-  drive: deque.Deque(Group),
-) -> deque.Deque(Group) {
-  case stack {
-    [] -> drive
-    [first, ..rest] -> restore_tail_stack(rest, deque.push_back(drive, first))
   }
 }
