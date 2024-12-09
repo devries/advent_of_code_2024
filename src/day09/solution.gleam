@@ -142,6 +142,9 @@ fn checksum_accumulation(values: List(Group), index: Int, sum: Int) -> Int {
   }
 }
 
+/// Work from the back of the drive and insert the last file into the first empty space on the drive
+/// large enough to hold it. If there is no such space, add that element to the tail stack and move
+/// on to the next file at the back of the deque.
 fn defrag(
   drive: deque.Deque(Group),
   tail_stack: List(Group),
@@ -157,6 +160,10 @@ fn defrag(
   }
 }
 
+/// This function inserts group in the drive deque in the first region where there is
+/// enough space after an existing file. The stack is an accumulator for all the areas
+/// popped from the deque which will need to be restored to the deque after a suitable
+/// space is found.
 fn insert_group(
   drive: deque.Deque(Group),
   group: Group,
@@ -168,15 +175,24 @@ fn insert_group(
       case head.spaces {
         l if l >= group.length -> {
           // We found a place to put the group, but we need to add the empty space to the
-          // last element
+          // last element. This maintains the length of the file/space groupings on the drive.
+
           case deque.pop_back(rest_drive) {
             Error(_) -> {
+              // There are no other elements in the drive aside from the
+              // head and the group we are trying to find space for.
+              // Just add the extra space to the group itself.
+
               deque.push_front(
                 rest_drive,
                 Group(..group, spaces: head.spaces + group.spaces),
               )
             }
+
             Ok(#(tail, temp_drive)) -> {
+              // Add the size of the entire group to the spaces of the
+              // drive's last element.
+
               deque.push_back(
                 temp_drive,
                 Group(..tail, spaces: tail.spaces + group.length + group.spaces),
