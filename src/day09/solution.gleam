@@ -205,7 +205,7 @@ fn insert_group(
             }
           }
           |> deque.push_front(Group(..head, spaces: 0))
-          |> restore_stack(stack, _)
+          |> restore_stack(stack)
           |> Ok
         }
         _ -> insert_group(rest_drive, group, [head, ..stack])
@@ -215,11 +215,11 @@ fn insert_group(
 }
 
 fn restore_stack(
-  stack: List(Group),
   drive: deque.Deque(Group),
+  stack: List(Group),
 ) -> deque.Deque(Group) {
   case stack {
     [] -> drive
-    [first, ..rest] -> restore_stack(rest, deque.push_front(drive, first))
+    [first, ..rest] -> restore_stack(deque.push_front(drive, first), rest)
   }
 }
