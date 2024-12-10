@@ -7,7 +7,7 @@ for day in $(seq -f "%02g" 1 25); do
   dir="src/day${day}"
   if [ -d $dir ]; then
     printf "Day $day:\n"
-    /usr/bin/time gleam run --no-print-progress -m day${day}/solution
+    gleam run --no-print-progress -m day${day}/solution
     printf "\n"
   fi
 done

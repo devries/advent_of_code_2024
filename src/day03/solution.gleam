@@ -14,8 +14,8 @@ pub fn main() {
     Ok(content) -> {
       // If the file was converting into a list of lines
       // successfully then run each part of the problem
-      io.println("Part 1: " <> aoc_utils.solution_or_error(solve_p1(content)))
-      io.println("Part 2: " <> aoc_utils.solution_or_error(solve_p2(content)))
+      aoc_utils.run_part_and_print("Part 1", fn() { solve_p1(content) })
+      aoc_utils.run_part_and_print("Part 2", fn() { solve_p2(content) })
     }
     Error(_) -> io.println("Error reading file")
   }
