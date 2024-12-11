@@ -26,3 +26,4 @@ gleam test
 - [Day 8](https://adventofcode.com/2024/day/8): [⭐ ⭐ solution](src/day08/solution.gleam)
 - [Day 9](https://adventofcode.com/2024/day/9): [⭐ ⭐ solution](src/day09/solution.gleam)
 - [Day 10](https://adventofcode.com/2024/day/10): [⭐ ⭐ solution](src/day10/solution.gleam)
+- [Day 11](https://adventofcode.com/2024/day/11): [⭐ ⭐ solution](src/day11/solution.gleam)

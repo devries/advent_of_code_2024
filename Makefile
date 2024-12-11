@@ -7,7 +7,7 @@ test:
 
 # Run today's code
 run:
-	time gleam run -m day$(shell date +%d)/solution
+	gleam run -m day$(shell date +%d)/solution
 
 test/day%_test.gleam:
 	- sed -E 's/dayXX/day$(*)/' templates/dayXX_test.gleam > $@
