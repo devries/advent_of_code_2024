@@ -101,9 +101,9 @@ fn stone_count(stones: List(Int), generations: Int) -> Int {
 fn stone_count_memoized(
   stone: Int,
   generations: Int,
-  cache: process.Subject(Message),
+  cache: process.Subject(Message(#(Int, Int), Int)),
 ) -> Int {
-  case generations, process.call(cache, Get(_, stone, generations), 100) {
+  case generations, process.call(cache, Get(_, #(stone, generations)), 100) {
     0, _ -> 1
     _, Ok(n) -> n
     _, _ -> {
@@ -112,7 +112,7 @@ fn stone_count_memoized(
           total + stone_count_memoized(child_stone, generations - 1, cache)
         })
 
-      process.send(cache, Put(stone, generations, result))
+      process.send(cache, Put(#(stone, generations), result))
       result
     }
   }
@@ -124,17 +124,17 @@ fn stone_count_memoized(
 // a key, and the total count of stones will be descended from it
 // after than many generations.
 
-pub type Message {
-  Put(value: Int, generations: Int, count: Int)
-  Get(reply_with: Subject(Result(Int, Nil)), value: Int, generations: Int)
+pub type Message(a, b) {
+  Put(key: a, value: b)
+  Get(reply_with: Subject(Result(b, Nil)), key: a)
   Shutdown
 }
 
-pub fn handle_message(message: Message, current: Dict(#(Int, Int), Int)) {
+pub fn handle_message(message: Message(a, b), current: Dict(a, b)) {
   case message {
-    Put(v, g, c) -> actor.continue(dict.insert(current, #(v, g), c))
-    Get(client, v, g) -> {
-      process.send(client, dict.get(current, #(v, g)))
+    Put(key, value) -> actor.continue(dict.insert(current, key, value))
+    Get(client, key) -> {
+      process.send(client, dict.get(current, key))
       actor.continue(current)
     }
     Shutdown -> actor.Stop(process.Normal)
