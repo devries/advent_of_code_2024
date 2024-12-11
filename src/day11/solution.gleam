@@ -38,9 +38,9 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
   let assert Ok(cache) = actor.start(dict.new(), handle_message)
 
   let result =
-    values
-    |> list.map(stone_count_memoized(_, 75, cache))
-    |> int.sum
+    list.fold(over: values, from: 0, with: fn(total, child_stone) {
+      total + stone_count_memoized(child_stone, 75, cache)
+    })
 
   process.send(cache, Shutdown)
   int.to_string(result)
@@ -108,9 +108,9 @@ fn stone_count_memoized(
     _, Ok(n) -> n
     _, _ -> {
       let result =
-        step(stone)
-        |> list.map(stone_count_memoized(_, generations - 1, cache))
-        |> int.sum
+        list.fold(over: step(stone), from: 0, with: fn(total, child_stone) {
+          total + stone_count_memoized(child_stone, generations - 1, cache)
+        })
 
       process.send(cache, Put(stone, generations, result))
       result
