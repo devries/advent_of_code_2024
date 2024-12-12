@@ -1,12 +1,10 @@
-import gleam/dict.{type Dict}
-import gleam/erlang/process.{type Subject}
 import gleam/int
 import gleam/io
 import gleam/list
-import gleam/otp/actor
 import gleam/result
 import gleam/string
 import internal/aoc_utils
+import internal/memoize
 
 pub fn main() {
   let filename = "inputs/day11.txt"
@@ -35,15 +33,12 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
 pub fn solve_p2(lines: List(String)) -> Result(String, String) {
   use values <- result.map(parse(lines))
 
-  let assert Ok(cache) = actor.start(dict.new(), handle_message)
+  use cache <- memoize.with_cache()
 
-  let result =
-    list.fold(over: values, from: 0, with: fn(total, child_stone) {
-      total + stone_count_memoized(child_stone, 75, cache)
-    })
-
-  process.send(cache, Shutdown)
-  int.to_string(result)
+  list.fold(over: values, from: 0, with: fn(total, child_stone) {
+    total + stone_count_memoized(child_stone, 75, cache)
+  })
+  |> int.to_string
 }
 
 fn parse(lines: List(String)) -> Result(List(Int), String) {
@@ -101,42 +96,15 @@ fn stone_count(stones: List(Int), generations: Int) -> Int {
 fn stone_count_memoized(
   stone: Int,
   generations: Int,
-  cache: process.Subject(Message(#(Int, Int), Int)),
+  cache: memoize.Cache(#(Int, Int), Int),
 ) -> Int {
-  case generations, process.call(cache, Get(_, #(stone, generations)), 100) {
-    0, _ -> 1
-    _, Ok(n) -> n
-    _, _ -> {
-      let result =
-        list.fold(over: step(stone), from: 0, with: fn(total, child_stone) {
-          total + stone_count_memoized(child_stone, generations - 1, cache)
-        })
-
-      process.send(cache, Put(#(stone, generations), result))
-      result
+  use <- memoize.cache_check(cache, #(stone, generations))
+  case generations {
+    0 -> 1
+    _ -> {
+      list.fold(over: step(stone), from: 0, with: fn(total, child_stone) {
+        total + stone_count_memoized(child_stone, generations - 1, cache)
+      })
     }
-  }
-}
-
-// Memoization in Gleam threw me for a loop, but an actor can hold
-// the information I need. Below are the building blocks of an
-// actor that holds a dict with a stone number and generations as
-// a key, and the total count of stones will be descended from it
-// after than many generations.
-
-pub type Message(a, b) {
-  Put(key: a, value: b)
-  Get(reply_with: Subject(Result(b, Nil)), key: a)
-  Shutdown
-}
-
-pub fn handle_message(message: Message(a, b), current: Dict(a, b)) {
-  case message {
-    Put(key, value) -> actor.continue(dict.insert(current, key, value))
-    Get(client, key) -> {
-      process.send(client, dict.get(current, key))
-      actor.continue(current)
-    }
-    Shutdown -> actor.Stop(process.Normal)
   }
 }
