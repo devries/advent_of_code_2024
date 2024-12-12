@@ -126,6 +126,44 @@ fn explore(
   }
 }
 
+// Straight edge counting algorithm:
+// 
+// Consider this shape
+// 
+//     #
+//  ####
+//  ##
+//  ####
+//
+// Let's look for all the edges on the upward side (North) indicated below.
+//
+//     _                                           _
+//  ___#    The points adjacent to these        ___O
+//  ####    edges can be found by looking       OOO#
+//  ##__    for points without neighbors to     ##__
+//  ####    the north.                          ##OO
+//
+// Let's consider only those points adjacent to north side walls
+//     _
+//  ___O    If we can find only one point
+//  OOO     per straight segment, we would
+//    __    be all set. 
+//    OO
+//
+// If we take a direction 90 degrees from North (for example East or Right).
+// We can filter out of the above set of points any point with another point
+// to the East or Right of it. That would eliminate the X points below:
+//     _                                         _
+//  ___O                                      ___O
+//  XXO      Leaving only these points:         O
+//    __                                        __
+//    XO                                         O
+//
+// These 3 points (The Os above) are one point per straight edge. 3 straight edges
+// on the North sides of the figure. We do this for each direction and
+// sum up the points to get the total number of straight edges along the perimeter
+// of the area.
+
 // Get the set of edges in a region with a side in a particular direction.
 fn get_edge_pieces_for_direction(r: Region, d: Point) -> Set(Point) {
   r.positions
