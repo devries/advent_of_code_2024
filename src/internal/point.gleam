@@ -14,6 +14,14 @@ pub fn mul(p: Point, m: Int) -> Point {
 }
 
 /// p1-p2
-pub fn sub(p1: Point, p2: Point) {
+pub fn sub(p1: Point, p2: Point) -> Point {
   #(p1.0 - p2.0, p1.1 - p2.1)
+}
+
+pub fn rotate_right(p: Point) -> Point {
+  #(p.1, -p.0)
+}
+
+pub fn rotate_left(p: Point) -> Point {
+  #(-p.1, p.0)
 }

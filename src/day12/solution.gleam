@@ -34,7 +34,14 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
 
 // Part 2
 pub fn solve_p2(lines: List(String)) -> Result(String, String) {
-  Error("Unimplemented")
+  let grid = parse(lines)
+
+  find_regions(dict.keys(grid), grid, set.new(), [])
+  |> list.fold(0, fn(a, r) {
+    a + { get_combined_edge_count(r) * set.size(r.positions) }
+  })
+  |> int.to_string
+  |> Ok
 }
 
 fn parse(lines: List(String)) -> Dict(Point, String) {
@@ -111,4 +118,32 @@ fn explore(
       }
     }
   }
+}
+
+fn get_edge_pieces_for_direction(r: Region, d: Point) -> Set(Point) {
+  r.positions
+  |> set.filter(fn(pt) {
+    let checkpoint = point.add(pt, d)
+    set.contains(r.positions, checkpoint) == False
+  })
+}
+
+fn get_combined_edge_count_for_direction(r: Region, d: Point) -> Int {
+  let edges = get_edge_pieces_for_direction(r, d)
+
+  let check_direction = point.rotate_right(d)
+
+  // Check if an edge piece is right next to existing piece
+  set.to_list(edges)
+  |> list.filter(fn(pt) {
+    set.contains(edges, point.add(pt, check_direction)) == False
+  })
+  |> list.length
+}
+
+fn get_combined_edge_count(r: Region) -> Int {
+  point.directions
+  |> list.fold(0, fn(sides, d) {
+    sides + get_combined_edge_count_for_direction(r, d)
+  })
 }
