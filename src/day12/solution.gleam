@@ -58,6 +58,7 @@ type Region {
   Region(plants: String, positions: Set(Point), perimeter: Int)
 }
 
+// Return a list of regions from the input grid.
 fn find_regions(
   positions: List(Point),
   grid: Dict(Point, String),
@@ -82,6 +83,8 @@ fn find_regions(
   }
 }
 
+// Explore a region looking for all connected positions with plant type of
+// plants from a list of positions to explore from.
 fn explore(
   plants: String,
   positions: List(Point),
@@ -120,6 +123,7 @@ fn explore(
   }
 }
 
+// Get the set of edges in a region with a side in a particular direction.
 fn get_edge_pieces_for_direction(r: Region, d: Point) -> Set(Point) {
   r.positions
   |> set.filter(fn(pt) {
@@ -128,12 +132,16 @@ fn get_edge_pieces_for_direction(r: Region, d: Point) -> Set(Point) {
   })
 }
 
+// Get the number of straight edges in one direction.
 fn get_combined_edge_count_for_direction(r: Region, d: Point) -> Int {
   let edges = get_edge_pieces_for_direction(r, d)
 
   let check_direction = point.rotate_right(d)
 
   // Check if an edge piece is right next to existing piece
+  // with an edge in the same direction. If so, just ignore that
+  // piece. This will leave one piece from each connected
+  // edge.
   set.to_list(edges)
   |> list.filter(fn(pt) {
     set.contains(edges, point.add(pt, check_direction)) == False
@@ -141,6 +149,7 @@ fn get_combined_edge_count_for_direction(r: Region, d: Point) -> Int {
   |> list.length
 }
 
+// Get the total number of straight edges
 fn get_combined_edge_count(r: Region) -> Int {
   point.directions
   |> list.fold(0, fn(sides, d) {
