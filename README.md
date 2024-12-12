@@ -16,15 +16,15 @@ To run the unit tests for all the days run
 gleam test
 ```
 
-- [Day 1](https://adventofcode.com/2024/day/1): [⭐ ⭐ solution](src/day01/solution.gleam)
+- [Day 1](https://adventofcode.com/2024/day/1): [⭐ ⭐ solution](src/day01/solution.gleam) - [words](https://unnecessary.tech/posts/aoc-2024-day1/)
 - [Day 2](https://adventofcode.com/2024/day/2): [⭐ ⭐ solution](src/day02/solution.gleam)
 - [Day 3](https://adventofcode.com/2024/day/3): [⭐ ⭐ solution](src/day03/solution.gleam)
-- [Day 4](https://adventofcode.com/2024/day/4): [⭐ ⭐ solution](src/day04/solution.gleam)
+- [Day 4](https://adventofcode.com/2024/day/4): [⭐ ⭐ solution](src/day04/solution.gleam) - [words](https://unnecessary.tech/posts/aoc-2024-day4/)
 - [Day 5](https://adventofcode.com/2024/day/5): [⭐ ⭐ solution](src/day05/solution.gleam)
-- [Day 6](https://adventofcode.com/2024/day/6): [⭐ ⭐ solution](src/day06/solution.gleam)
+- [Day 6](https://adventofcode.com/2024/day/6): [⭐ ⭐ solution](src/day06/solution.gleam) - [words](https://unnecessary.tech/posts/aoc-2024-day6/)
 - [Day 7](https://adventofcode.com/2024/day/7): [⭐ ⭐ solution](src/day07/solution.gleam)
 - [Day 8](https://adventofcode.com/2024/day/8): [⭐ ⭐ solution](src/day08/solution.gleam)
 - [Day 9](https://adventofcode.com/2024/day/9): [⭐ ⭐ solution](src/day09/solution.gleam)
 - [Day 10](https://adventofcode.com/2024/day/10): [⭐ ⭐ solution](src/day10/solution.gleam)
-- [Day 11](https://adventofcode.com/2024/day/11): [⭐ ⭐ solution](src/day11/solution.gleam)
+- [Day 11](https://adventofcode.com/2024/day/11): [⭐ ⭐ solution](src/day11/solution.gleam) - [words](https://unnecessary.tech/posts/aoc-2024-day11/)
 - [Day 12](https://adventofcode.com/2024/day/12): [⭐ ⭐ solution](src/day12/solution.gleam)
