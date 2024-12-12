@@ -72,7 +72,16 @@ fn find_regions(
         True -> find_regions(rest, grid, assigned, regions)
         False -> {
           let assert Ok(plants) = dict.get(grid, first)
-          let new_region = explore(plants, [first], grid, set.new(), 0)
+
+          let starting_list = [first]
+          let new_region =
+            explore(
+              plants,
+              starting_list,
+              grid,
+              set.from_list(starting_list),
+              0,
+            )
           find_regions(rest, grid, set.union(assigned, new_region.positions), [
             new_region,
             ..regions
@@ -84,41 +93,35 @@ fn find_regions(
 }
 
 // Explore a region looking for all connected positions with plant type of
-// plants from a list of positions to explore from.
+// plants from a list of positions to explore from. Also count edges while
+// doing this.
 fn explore(
   plants: String,
   positions: List(Point),
   grid: Dict(Point, String),
-  seen: Set(Point),
+  found: Set(Point),
   edges: Int,
 ) -> Region {
   case positions {
-    [] -> Region(plants, seen, edges)
+    [] -> Region(plants, found, edges)
     [first, ..rest] -> {
-      case set.contains(seen, first) {
-        False -> {
-          let adjacents =
-            list.map(point.directions, point.add(_, first))
-            |> list.filter(fn(p) { set.contains(seen, p) == False })
+      let adjacents =
+        list.map(point.directions, point.add(_, first))
+        |> list.filter(fn(p) { set.contains(found, p) == False })
 
-          let new_positions =
-            adjacents
-            |> list.filter(fn(position) {
-              dict.get(grid, position) == Ok(plants)
-            })
+      let new_positions =
+        adjacents
+        |> list.filter(fn(position) { dict.get(grid, position) == Ok(plants) })
 
-          let new_edges = list.length(adjacents) - list.length(new_positions)
+      let new_edges = list.length(adjacents) - list.length(new_positions)
 
-          explore(
-            plants,
-            list.flatten([rest, new_positions]),
-            grid,
-            set.insert(seen, first),
-            edges + new_edges,
-          )
-        }
-        True -> explore(plants, rest, grid, seen, edges)
-      }
+      explore(
+        plants,
+        list.flatten([rest, new_positions]),
+        grid,
+        set.union(found, set.from_list(new_positions)),
+        edges + new_edges,
+      )
     }
   }
 }
