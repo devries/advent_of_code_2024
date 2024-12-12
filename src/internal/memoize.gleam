@@ -35,9 +35,9 @@ pub fn handle_message(message: Message(a, b), current: Dict(a, b)) {
 // otherwise it continues with the function and records the response for those
 // parameters.
 pub fn cache_check(cache: Cache(a, b), key: a, callback: fn() -> b) -> b {
-  let result = process.call(cache, Get(_, key), 100)
+  let cache_result = process.call(cache, Get(_, key), 100)
 
-  case result {
+  case cache_result {
     Ok(v) -> v
     Error(Nil) -> {
       let result = callback()

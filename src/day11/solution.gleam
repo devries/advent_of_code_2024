@@ -33,6 +33,8 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
 pub fn solve_p2(lines: List(String)) -> Result(String, String) {
   use values <- result.map(parse(lines))
 
+  // Instantiate a cache in an actor to memoize a function.
+  // The cache will be destroyed at the end of the function.
   use cache <- memoize.with_cache()
 
   list.fold(over: values, from: 0, with: fn(total, child_stone) {
@@ -54,6 +56,7 @@ fn parse(lines: List(String)) -> Result(List(Int), String) {
   |> result.replace_error("Unable to parse input")
 }
 
+// Find what happens to a stone after a single blink.
 fn step(x: Int) -> List(Int) {
   let assert Ok(ds) = int.digits(x, 10)
   let n = list.length(ds)
@@ -98,7 +101,12 @@ fn stone_count_memoized(
   generations: Int,
   cache: memoize.Cache(#(Int, Int), Int),
 ) -> Int {
+  // Check if this combination of stone and generations has been
+  // found before, and if so just return that value.
   use <- memoize.cache_check(cache, #(stone, generations))
+
+  // Do the calculation, the return value will automatically be added to
+  // the cache when the function returns.
   case generations {
     0 -> 1
     _ -> {
