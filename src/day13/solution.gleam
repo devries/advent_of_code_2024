@@ -31,13 +31,31 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
   })
 
   inputs
-  |> io.debug
-  todo
+  |> list.map(solve)
+  |> result.values
+  |> list.map(fn(v) { 3 * v.0 + v.1 })
+  |> int.sum
+  |> int.to_string
 }
 
 // Part 2
 pub fn solve_p2(lines: List(String)) -> Result(String, String) {
-  Error("Unimplemented")
+  use inputs <- result.map({
+    lines
+    |> aoc_utils.chunk_around_empty_strings()
+    |> list.map(parse)
+    |> result.all
+  })
+
+  inputs
+  |> list.map(fn(i) {
+    Input(..i, px: 10_000_000_000_000 + i.px, py: 10_000_000_000_000 + i.py)
+  })
+  |> list.map(solve)
+  |> result.values
+  |> list.map(fn(v) { 3 * v.0 + v.1 })
+  |> int.sum
+  |> int.to_string
 }
 
 type Input {
@@ -104,4 +122,29 @@ fn scanline(matches: List(regexp.Match)) -> Result(List(Int), String) {
     }
   })
   |> result.all
+}
+
+//      ax * A +      bx * B =      px
+//      ay * A +      by * B =      py
+//
+// by * ax * A + by * bx * B = by * px
+// bx * ay * A + bx * by * B = bx * py
+//
+// ( ax * by - ay * bx ) * A = by * px - bx * py
+//
+// A = ( px * by - py * bx ) / ( ax * by - ay * bx )
+//
+// B = ( px - ax * A ) / bx
+//
+
+fn solve(i: Input) -> Result(#(Int, Int), Nil) {
+  let denominator = i.ax * i.by - i.ay * i.bx
+  let numerator = i.px * i.by - i.py * i.bx
+
+  use a <- result.try(int.divide(numerator, denominator))
+  let b = { i.px - i.ax * a } / i.bx
+  case numerator % denominator {
+    0 -> Ok(#(a, b))
+    _ -> Error(Nil)
+  }
 }
