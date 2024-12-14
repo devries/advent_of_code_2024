@@ -1,3 +1,4 @@
+import envoy
 import gleam/dict.{type Dict}
 import gleam/int
 import gleam/io
@@ -55,7 +56,12 @@ pub fn solve_p2(
     |> list.map(parse)
     |> result.all
   })
-  step_and_check_overlap(robots, x_size, y_size, 0)
+  // First solution, based on reddit lookup.
+  // step_and_check_overlap(robots, x_size, y_size, 0)
+  // |> int.to_string
+
+  // Second solution based on shapefinding
+  step_and_check_edges(robots, x_size, y_size, 0)
   |> int.to_string
 }
 
@@ -115,30 +121,28 @@ fn quadrant_split(
   |> dict.delete(4)
 }
 
-// fn print_robot_map(rlist: List(Robot), x_size: Int, y_size: Int) -> List(Robot) {
-//   let rpos =
-//     rlist
-//     |> list.fold(dict.new(), fn(rpos, r) {
-//       dict.upsert(rpos, r.p, fn(existing) {
-//         case existing {
-//           Some(v) -> v + 1
-//           _ -> 1
-//         }
-//       })
-//     })
+fn print_robot_map(rlist: List(Robot), x_size: Int, y_size: Int) {
+  let rpos =
+    rlist
+    |> list.fold(dict.new(), fn(rpos, r) {
+      dict.upsert(rpos, r.p, fn(existing) {
+        case existing {
+          Some(v) -> v + 1
+          _ -> 1
+        }
+      })
+    })
 
-//   list.each(list.range(0, y_size - 1), fn(y) {
-//     list.each(list.range(0, x_size - 1), fn(x) {
-//       case dict.get(rpos, #(x, y)) {
-//         Ok(v) -> io.print(int.to_string(v))
-//         _ -> io.print(" ")
-//       }
-//     })
-//     io.println("")
-//   })
-
-//   rlist
-// }
+  list.each(list.range(0, y_size - 1), fn(y) {
+    list.each(list.range(0, x_size - 1), fn(x) {
+      case dict.get(rpos, #(x, y)) {
+        Ok(v) -> io.print(int.to_string(v))
+        _ -> io.print(" ")
+      }
+    })
+    io.println("")
+  })
+}
 
 // At first I went thousands and thousands of iterations looking for symmetry
 // thinking it would be centered, but it was not. Eventually I decided to check
@@ -154,12 +158,7 @@ fn step_and_check_overlap(
 
   // case left_right_symmetry(rnext, x_size, y_size) {
   case no_overlaps(rnext) {
-    True -> {
-      // print_robot_map(rnext, x_size, y_size)
-      // io.println(int.to_string(v + 1))
-
-      v + 1
-    }
+    True -> v + 1
     _ -> step_and_check_overlap(rnext, x_size, y_size, v + 1)
   }
 }
@@ -176,4 +175,85 @@ fn no_overlaps(rlist: List(Robot)) -> Bool {
   })
   |> dict.values()
   |> list.all(fn(v) { v == 1 })
+}
+
+// However later I came up with an idea based on shapefinders to find vertical
+// and horizontal edges of structure based on scanning through robot counts in
+// rows and columns and running a window of width 4 which would add the counts
+// in the two leading rows or columns and subtract them in the two following rows
+// or columns. On average this should give 0, but at the beginning of a large
+// filled structure it would be positive and at the end negative. I multiplied the
+// results of each dimension.
+
+fn vertical_edge_detector(rlist: List(Robot), y_size: Int) -> Int {
+  let y_counts =
+    rlist
+    |> list.group(fn(r) {
+      // Group by y coordinate
+      r.p.1
+    })
+    |> dict.map_values(fn(_, sublist) { list.length(sublist) })
+
+  list.map(list.range(0, y_size - 1), fn(i) {
+    dict.get(y_counts, i)
+    |> result.unwrap(0)
+  })
+  |> list.window(4)
+  |> list.map(fn(window) {
+    let #(left, right) = list.split(window, 2)
+    int.sum(right) - int.sum(left)
+  })
+  |> list.fold(0, fn(acc, v) { int.max(acc, v) })
+}
+
+fn horizontal_edge_detector(rlist: List(Robot), x_size: Int) -> Int {
+  let x_counts =
+    rlist
+    |> list.group(fn(r) {
+      // Group by y coordinate
+      r.p.0
+    })
+    |> dict.map_values(fn(_, sublist) { list.length(sublist) })
+
+  list.map(list.range(0, x_size - 1), fn(i) {
+    dict.get(x_counts, i)
+    |> result.unwrap(0)
+  })
+  |> list.window(4)
+  |> list.map(fn(window) {
+    let #(left, right) = list.split(window, 2)
+    int.sum(right) - int.sum(left)
+  })
+  |> list.fold(0, fn(acc, v) { int.max(acc, v) })
+}
+
+fn structure_detector(rlist: List(Robot), x_size: Int, y_size: Int) -> Int {
+  let ve = vertical_edge_detector(rlist, y_size)
+  let he = horizontal_edge_detector(rlist, x_size)
+  he * ve
+}
+
+fn step_and_check_edges(
+  rlist: List(Robot),
+  x_size: Int,
+  y_size: Int,
+  v: Int,
+) -> Int {
+  let rnext = list.map(rlist, fn(r) { step(r, x_size, y_size) })
+
+  let s = structure_detector(rnext, x_size, y_size)
+
+  // I came up with 700 through trial and error. When I hit 700
+  // I found that the value 1,155 repeated at an interval of 10,403 iterations.
+  // This is when the easter egg is present.
+  case s > 700 {
+    True -> {
+      case envoy.get("AOC_DEBUG") {
+        Ok(_) -> print_robot_map(rnext, x_size, y_size)
+        Error(_) -> Nil
+      }
+      v + 1
+    }
+    False -> step_and_check_edges(rnext, x_size, y_size, v + 1)
+  }
 }

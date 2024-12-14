@@ -16,6 +16,9 @@ To run the unit tests for all the days run
 gleam test
 ```
 
+For some problems, setting the AOC_DEBUG environment variable outputs additional
+information.
+
 - [Day 1](https://adventofcode.com/2024/day/1): [⭐ ⭐ solution](src/day01/solution.gleam) - [words](https://unnecessary.tech/posts/aoc-2024-day1/)
 - [Day 2](https://adventofcode.com/2024/day/2): [⭐ ⭐ solution](src/day02/solution.gleam)
 - [Day 3](https://adventofcode.com/2024/day/3): [⭐ ⭐ solution](src/day03/solution.gleam)
