@@ -1,6 +1,5 @@
 import envoy
 import gleam/dict.{type Dict}
-import gleam/erlang
 import gleam/int
 import gleam/io
 import gleam/list
@@ -50,19 +49,21 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
 pub fn solve_p2(lines: List(String)) -> Result(String, String) {
   let assert Ok(#(robot, grid, moves)) = parse_doublewide(lines)
 
-  moves
-  |> list.fold(#(robot, grid), fn(state, direction) {
-    let #(r, g) = move_robot(state.0, direction, state.1)
+  let print_if_debug = fn(tuple) {
+    let #(r, g) = tuple
+
     case envoy.get("AOC_DEBUG") {
-      Ok(_) -> {
-        print_grid(g, r)
-        let _ = erlang.get_line(":")
-        Nil
-      }
+      Ok(_) -> print_grid(g, r)
       _ -> Nil
     }
     #(r, g)
+  }
+
+  moves
+  |> list.fold(#(robot, grid), fn(state, direction) {
+    move_robot(state.0, direction, state.1)
   })
+  |> print_if_debug
   |> pair.second
   |> dict.to_list
   |> list.map(fn(kvpair) {

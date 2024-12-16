@@ -61,7 +61,7 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
     |> list.filter(fn(s) { s.position == maze.end })
 
   let found_tiles =
-    get_tiles(end_states, routings, set.new())
+    get_states(end_states, routings, set.new())
     |> set.fold(set.new(), fn(tiles, state) {
       set.insert(tiles, state.position)
     })
@@ -190,6 +190,10 @@ fn find_all_optimal_path_tiles(
   }
 }
 
+// The state tracker keeps track of the lowest cost way to get to a state
+// as well as the previous states which lead to that state. This allows us
+// to follow the states back and find the multiple ways to find the optimal
+// solution.
 fn update_state_tracker(
   tracker: Dict(State, #(Int, List(State))),
   prevstate: State,
@@ -206,7 +210,7 @@ fn update_state_tracker(
   }
 }
 
-fn get_tiles(
+fn get_states(
   to: List(State),
   tracker: Dict(State, #(Int, List(State))),
   found: set.Set(State),
@@ -219,13 +223,13 @@ fn get_tiles(
           let newfound = set.insert(found, first)
           case dict.get(tracker, first) {
             Ok(#(_, previous)) -> {
-              get_tiles(list.flatten([rest, previous]), tracker, newfound)
+              get_states(list.flatten([rest, previous]), tracker, newfound)
             }
             // The initial point had no previous state, this is probably that.
-            _ -> get_tiles(rest, tracker, newfound)
+            _ -> get_states(rest, tracker, newfound)
           }
         }
-        True -> get_tiles(rest, tracker, found)
+        True -> get_states(rest, tracker, found)
       }
     }
   }
