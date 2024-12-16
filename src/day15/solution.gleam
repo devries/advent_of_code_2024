@@ -252,9 +252,7 @@ fn double_wide(lines: List(String)) -> List(String) {
     |> string.to_graphemes
     |> list.map(fn(c) {
       case c {
-        "#" -> "##"
         "O" -> "[]"
-        "." -> ".."
         "@" -> "@."
         c -> c <> c
       }
