@@ -1,4 +1,5 @@
 // import gleam/deque
+import envoy
 import gleam/dict.{type Dict}
 import gleam/int
 import gleam/io
@@ -59,8 +60,18 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
     dict.keys(routings)
     |> list.filter(fn(s) { s.position == maze.end })
 
-  get_tiles(end_states, routings, set.new())
-  |> set.fold(set.new(), fn(tiles, state) { set.insert(tiles, state.position) })
+  let found_tiles =
+    get_tiles(end_states, routings, set.new())
+    |> set.fold(set.new(), fn(tiles, state) {
+      set.insert(tiles, state.position)
+    })
+
+  case envoy.get("AOC_DEBUG") {
+    Ok(_) -> print_best_pathways(maze, found_tiles)
+    _ -> Nil
+  }
+
+  found_tiles
   |> set.size
   |> int.to_string
 }
@@ -218,4 +229,29 @@ fn get_tiles(
       }
     }
   }
+}
+
+fn print_best_pathways(grid: Maze, tiles: set.Set(Point)) {
+  let #(xmax, ymax) = find_max(grid.map)
+
+  list.each(list.range(0, ymax), fn(y) {
+    list.each(list.range(0, xmax), fn(x) {
+      let p = #(x, y)
+      case set.contains(tiles, p), dict.get(grid.map, p) {
+        True, _ -> io.print("O")
+        _, Ok(v) -> io.print(v)
+        _, _ -> io.print(" ")
+      }
+    })
+    io.println("")
+  })
+  io.println("")
+}
+
+fn find_max(grid: Dict(Point, String)) -> #(Int, Int) {
+  let #(points, _) = dict.to_list(grid) |> list.unzip
+
+  list.fold(points, #(0, 0), fn(max, p) {
+    #(int.max(max.0, p.0), int.max(max.1, p.1))
+  })
 }
