@@ -69,6 +69,7 @@ fn parse(lines: List(String)) -> List(Point) {
   |> result.values
 }
 
+// Dijkstra search.
 fn find_route_length(
   bytes: Set(Point),
   size: Int,
@@ -120,6 +121,8 @@ pub fn plot_route(
   })
 }
 
+// Do a binary search. When min pieces fall the path is open,
+// when max falls the path is closed. 
 fn find_blocking_piece(
   bytes: List(Point),
   min: Int,
