@@ -5,6 +5,7 @@ import gleam/list
 import gleam/result
 import gleam/string
 import internal/aoc_utils
+import internal/memoize
 
 pub fn main() {
   let filename = "inputs/day19.txt"
@@ -25,8 +26,10 @@ pub fn main() {
 pub fn solve_p1(lines: List(String)) -> Result(String, String) {
   let #(trie, patterns) = parse(lines)
 
+  use cache <- memoize.with_cache()
+
   patterns
-  |> list.map(find_sequence(trie, _))
+  |> list.map(find_sequence(trie, cache, _))
   |> list.filter(fn(s) { s != [] })
   |> list.length
   |> int.to_string
@@ -35,7 +38,17 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
 
 // Part 2
 pub fn solve_p2(lines: List(String)) -> Result(String, String) {
-  Error("Unimplemented")
+  let #(trie, patterns) = parse(lines)
+
+  use cache <- memoize.with_cache()
+
+  patterns
+  |> list.map(find_sequence(trie, cache, _))
+  |> list.filter(fn(s) { s != [] })
+  |> list.map(list.length)
+  |> int.sum
+  |> int.to_string
+  |> Ok
 }
 
 type Node {
@@ -94,10 +107,12 @@ fn parse_towels(lines: List(String)) -> Dict(String, Node) {
 
 fn find_sequence(
   trie: Dict(String, Node),
+  cache: memoize.Cache(List(String), List(List(String))),
   pattern: String,
 ) -> List(List(String)) {
   let g = string.to_graphemes(pattern)
-  recurse_trie(trie, [#([], g)], [])
+  recurse_trie(trie, cache, [#([], g)], [])
+  |> io.debug
 }
 
 fn find_sequence_acc(
@@ -120,6 +135,7 @@ fn find_sequence_acc(
 
 fn recurse_trie(
   trie: Dict(String, Node),
+  cache: memoize.Cache(List(String), List(List(String))),
   stack: List(#(List(String), List(String))),
   done: List(List(String)),
 ) -> List(List(String)) {
@@ -127,17 +143,30 @@ fn recurse_trie(
     [first, ..rest] -> {
       case first.1 {
         [] -> {
-          // recurse_trie(trie, rest, [first.0, ..done])
-          [first.0, ..done]
+          recurse_trie(trie, cache, rest, [first.0, ..done])
+          // [first.0, ..done]
         }
         _ -> {
-          let new_ones =
-            find_sequence_acc(trie, first.1, [])
-            |> list.map(fn(mtup) { #([mtup.0, ..first.0], mtup.1) })
-          recurse_trie(trie, list.flatten([new_ones, rest]), done)
+          let desc =
+            cached_list(trie, cache, first.1)
+            |> list.map(fn(d) { list.flatten([first.0, d]) })
+          recurse_trie(trie, cache, rest, list.flatten([desc, done]))
         }
       }
     }
     [] -> done
   }
+}
+
+fn cached_list(
+  trie: Dict(String, Node),
+  cache: memoize.Cache(List(String), List(List(String))),
+  sequence: List(String),
+) -> List(List(String)) {
+  use <- memoize.cache_check(cache, sequence)
+
+  let new_ones =
+    find_sequence_acc(trie, sequence, [])
+    |> list.map(fn(mtup) { #([mtup.0], mtup.1) })
+  recurse_trie(trie, cache, new_ones, [])
 }
