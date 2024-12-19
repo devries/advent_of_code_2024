@@ -109,7 +109,7 @@ fn find_sequence_count(
   pattern: String,
 ) -> Int {
   let g = string.to_graphemes(pattern)
-  recurse_counter(trie, cache, [g], 0)
+  cached_count(trie, cache, g)
 }
 
 fn find_possible_heads(
