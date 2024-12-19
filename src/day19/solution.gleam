@@ -29,8 +29,8 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
   use cache <- memoize.with_cache()
 
   patterns
-  |> list.map(find_sequence(trie, cache, _))
-  |> list.filter(fn(s) { s != [] })
+  |> list.map(find_sequence_count(trie, cache, _))
+  |> list.filter(fn(s) { s != 0 })
   |> list.length
   |> int.to_string
   |> Ok
@@ -43,9 +43,7 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
   use cache <- memoize.with_cache()
 
   patterns
-  |> list.map(find_sequence(trie, cache, _))
-  |> list.filter(fn(s) { s != [] })
-  |> list.map(list.length)
+  |> list.map(find_sequence_count(trie, cache, _))
   |> int.sum
   |> int.to_string
   |> Ok
@@ -105,17 +103,16 @@ fn parse_towels(lines: List(String)) -> Dict(String, Node) {
   |> list.fold(dict.new(), add_towel)
 }
 
-fn find_sequence(
+fn find_sequence_count(
   trie: Dict(String, Node),
-  cache: memoize.Cache(List(String), List(List(String))),
+  cache: memoize.Cache(List(String), Int),
   pattern: String,
-) -> List(List(String)) {
+) -> Int {
   let g = string.to_graphemes(pattern)
-  recurse_trie(trie, cache, [#([], g)], [])
-  |> io.debug
+  recurse_counter(trie, cache, [g], 0)
 }
 
-fn find_sequence_acc(
+fn find_possible_heads(
   trie: Dict(String, Node),
   remaining: List(String),
   stack: List(#(String, List(String))),
@@ -123,9 +120,9 @@ fn find_sequence_acc(
   case remaining {
     [first, ..rest] -> {
       case dict.get(trie, first) {
-        Ok(Next(subtrie)) -> find_sequence_acc(subtrie, rest, stack)
+        Ok(Next(subtrie)) -> find_possible_heads(subtrie, rest, stack)
         Ok(End(subtrie, value)) ->
-          find_sequence_acc(subtrie, rest, [#(value, rest), ..stack])
+          find_possible_heads(subtrie, rest, [#(value, rest), ..stack])
         Error(Nil) -> stack
       }
     }
@@ -133,24 +130,19 @@ fn find_sequence_acc(
   }
 }
 
-fn recurse_trie(
+fn recurse_counter(
   trie: Dict(String, Node),
-  cache: memoize.Cache(List(String), List(List(String))),
-  stack: List(#(List(String), List(String))),
-  done: List(List(String)),
-) -> List(List(String)) {
+  cache: memoize.Cache(List(String), Int),
+  stack: List(List(String)),
+  done: Int,
+) -> Int {
   case stack {
     [first, ..rest] -> {
-      case first.1 {
-        [] -> {
-          recurse_trie(trie, cache, rest, [first.0, ..done])
-          // [first.0, ..done]
-        }
+      case first {
+        [] -> recurse_counter(trie, cache, rest, done + 1)
         _ -> {
-          let desc =
-            cached_list(trie, cache, first.1)
-            |> list.map(fn(d) { list.flatten([first.0, d]) })
-          recurse_trie(trie, cache, rest, list.flatten([desc, done]))
+          let desc = cached_count(trie, cache, first)
+          recurse_counter(trie, cache, rest, done + desc)
         }
       }
     }
@@ -158,15 +150,15 @@ fn recurse_trie(
   }
 }
 
-fn cached_list(
+fn cached_count(
   trie: Dict(String, Node),
-  cache: memoize.Cache(List(String), List(List(String))),
+  cache: memoize.Cache(List(String), Int),
   sequence: List(String),
-) -> List(List(String)) {
+) -> Int {
   use <- memoize.cache_check(cache, sequence)
 
   let new_ones =
-    find_sequence_acc(trie, sequence, [])
-    |> list.map(fn(mtup) { #([mtup.0], mtup.1) })
-  recurse_trie(trie, cache, new_ones, [])
+    find_possible_heads(trie, sequence, [])
+    |> list.map(fn(mtup) { mtup.1 })
+  recurse_counter(trie, cache, new_ones, 0)
 }
