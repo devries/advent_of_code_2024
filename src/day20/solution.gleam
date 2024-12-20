@@ -33,7 +33,7 @@ pub fn solve_p1(
   let track = parse(lines)
 
   let pqueue = dijkstra.push(dijkstra.new(), 0, track.start, None)
-  use route <- result.try({
+  use route <- result.map({
     find_path(track, pqueue)
     |> result.replace_error("Unable to find route")
   })
@@ -45,7 +45,6 @@ pub fn solve_p1(
   |> list.filter(fn(s) { s.savings >= saving_floor })
   |> list.length
   |> int.to_string
-  |> Ok
 }
 
 // Part 2
@@ -56,7 +55,7 @@ pub fn solve_p2(
   let track = parse(lines)
 
   let pqueue = dijkstra.push(dijkstra.new(), 0, track.start, None)
-  use route <- result.try({
+  use route <- result.map({
     find_path(track, pqueue)
     |> result.replace_error("Unable to find route")
   })
@@ -66,7 +65,6 @@ pub fn solve_p2(
 
   count_shortcuts(route, route_times, 20, saving_floor, 0)
   |> int.to_string
-  |> Ok
 }
 
 type Track {
