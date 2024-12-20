@@ -1,3 +1,5 @@
+import gleam/int
+
 pub type Point =
   #(Int, Int)
 
@@ -24,4 +26,8 @@ pub fn rotate_right(p: Point) -> Point {
 
 pub fn rotate_left(p: Point) -> Point {
   #(-p.1, p.0)
+}
+
+pub fn distance(p1: Point, p2: Point) -> Int {
+  int.absolute_value(p2.0 - p1.0) + int.absolute_value(p2.1 - p1.1)
 }
