@@ -128,10 +128,12 @@ fn get_offsets_acc(
     _ -> {
       use new_positions, dir <- list.fold(point.directions, positions)
 
-      set.difference(new_positions, positions)
-
       let npos = point.add(offset, dir)
-      get_offsets_acc(steps - 1, npos, set.insert(new_positions, npos))
+      case set.contains(new_positions, npos) {
+        True -> new_positions
+        False ->
+          get_offsets_acc(steps - 1, npos, set.insert(new_positions, npos))
+      }
     }
   }
 }
