@@ -58,6 +58,7 @@ pub fn main() {
 // <   A   > A   v  < <A    A > ^  A  A >  A       v  A  A^ A <   v A  AA> ^  A
 // ^       A     <          < ^       ^ A          >     >A   v        vvA 
 //               1234567890 1 1234567 1 1234
+//               Left then up is shorter, direction matters (ugh!)
 // ^A<<^^A>>AvvvA
 
 // Part 1
