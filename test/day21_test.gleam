@@ -11,7 +11,7 @@ const testinput = "029A
 pub fn part1_test() {
   let lines = string.split(testinput, "\n")
   solution.solve_p1(lines)
-  |> should.equal(Ok(""))
+  |> should.equal(Ok("126384"))
 }
 
 pub fn part2_test() {

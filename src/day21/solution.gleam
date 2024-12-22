@@ -2,8 +2,10 @@ import gleam/int
 import gleam/io
 import gleam/list
 import gleam/order
+import gleam/result
 import gleam/string
 import internal/aoc_utils
+import internal/memoize
 import internal/point.{type Point}
 
 pub fn main() {
@@ -61,39 +63,74 @@ pub fn main() {
 // Part 1
 pub fn solve_p1(lines: List(String)) -> Result(String, String) {
   list.map(lines, fn(line) {
-    decode_numeric_sequence(line)
-    |> io.debug
-    |> decode_directional_sequence
-    |> io.debug
-    |> decode_directional_sequence
-    |> io.debug
-    |> string.length
-    |> io.debug
+    let length =
+      decode_numeric_sequence(line)
+      |> decode_directional_sequence
+      |> decode_directional_sequence
+      |> list.map(fn(l) { string.length(l) })
+      |> list.reduce(int.min)
+      |> result.unwrap(0)
+    get_numeric_portions(line) * length
   })
-
-  todo
+  |> int.sum
+  |> int.to_string
+  |> Ok
 }
 
 // Part 2
 pub fn solve_p2(lines: List(String)) -> Result(String, String) {
-  Error("Unimplemented")
+  // I think I will need to memoize, but I need to figure out what.
+  use cache <- memoize.with_cache()
+
+  list.map(lines, fn(line) {
+    let length =
+      decode_numeric_sequence(line)
+      |> todo
+      |> list.map(fn(l) { string.length(l) })
+      |> list.reduce(int.min)
+      |> result.unwrap(0)
+    get_numeric_portions(line) * length
+  })
+  |> int.sum
+  |> int.to_string
+  |> Ok
 }
 
-fn decode_numeric_sequence(sequence: String) -> String {
+fn decode_numeric_sequence(sequence: String) -> List(String) {
   string.to_graphemes("A" <> sequence)
   |> list.window_by_2
   |> list.map(fn(pair) { find_motion_numeric(pair.0, pair.1) })
-  |> string.join("")
+  |> list.reduce(fn(solutions, next_set) {
+    solutions
+    |> list.map(fn(s) {
+      next_set
+      |> list.map(fn(n) { s <> n })
+    })
+    |> list.flatten
+  })
+  |> result.unwrap([])
 }
 
-fn decode_directional_sequence(sequence: String) -> String {
-  string.to_graphemes("A" <> sequence)
-  |> list.window_by_2
-  |> list.map(fn(pair) { find_motion_directional(pair.0, pair.1) })
-  |> string.join("")
+fn decode_directional_sequence(sequences: List(String)) -> List(String) {
+  sequences
+  |> list.map(fn(sequence) {
+    string.to_graphemes("A" <> sequence)
+    |> list.window_by_2
+    |> list.map(fn(pair) { find_motion_directional(pair.0, pair.1) })
+    |> list.reduce(fn(solutions, next_set) {
+      solutions
+      |> list.map(fn(s) {
+        next_set
+        |> list.map(fn(n) { s <> n })
+      })
+      |> list.flatten
+    })
+    |> result.unwrap([])
+  })
+  |> list.flatten
 }
 
-fn find_motion_directional(start: String, push: String) -> String {
+fn find_motion_directional(start: String, push: String) -> List(String) {
   let assert Ok(start_pos) = get_directional_position(start)
   let assert Ok(push_pos) = get_directional_position(push)
 
@@ -106,23 +143,26 @@ fn find_motion_directional(start: String, push: String) -> String {
     order.Gt -> string.join(list.repeat("<", -right_count), "")
   }
 
-  case int.compare(start_pos.1, push_pos.1) {
-    order.Lt -> {
-      // Go up first then left or right
-      horizontal <> string.join(list.repeat("^", up_count), "") <> "A"
-    }
-    order.Eq -> {
-      // Go left or right
-      horizontal <> "A"
-    }
-    order.Gt -> {
-      // Go left or right first, then down
-      string.join(list.repeat("v", -up_count), "") <> horizontal <> "A"
-    }
+  let vertical = case int.compare(start_pos.1, push_pos.1) {
+    order.Lt -> string.join(list.repeat("^", up_count), "")
+    order.Eq -> ""
+    order.Gt -> string.join(list.repeat("v", -up_count), "")
+  }
+
+  case start_pos, push_pos {
+    #(_, 1), #(0, _) -> [vertical <> horizontal <> "A"]
+    #(0, _), #(_, 1) -> [horizontal <> vertical <> "A"]
+    _, _ ->
+      case vertical, horizontal {
+        "", "" -> ["A"]
+        "", _ -> [horizontal <> "A"]
+        _, "" -> [vertical <> "A"]
+        _, _ -> [vertical <> horizontal <> "A", horizontal <> vertical <> "A"]
+      }
   }
 }
 
-fn find_motion_numeric(start: String, push: String) -> String {
+fn find_motion_numeric(start: String, push: String) -> List(String) {
   let assert Ok(start_pos) = get_numeric_position(start)
   let assert Ok(push_pos) = get_numeric_position(push)
 
@@ -135,19 +175,22 @@ fn find_motion_numeric(start: String, push: String) -> String {
     order.Gt -> string.join(list.repeat("<", -right_count), "")
   }
 
-  case int.compare(start_pos.1, push_pos.1) {
-    order.Lt -> {
-      // Go up first then left or right
-      string.join(list.repeat("^", up_count), "") <> horizontal <> "A"
-    }
-    order.Eq -> {
-      // Go left or right
-      horizontal <> "A"
-    }
-    order.Gt -> {
-      // Go left or right first, then down
-      horizontal <> string.join(list.repeat("v", -up_count), "") <> "A"
-    }
+  let vertical = case int.compare(start_pos.1, push_pos.1) {
+    order.Lt -> string.join(list.repeat("^", up_count), "")
+    order.Eq -> ""
+    order.Gt -> string.join(list.repeat("v", -up_count), "")
+  }
+
+  case start_pos, push_pos {
+    #(_, 0), #(0, _) -> [vertical <> horizontal <> "A"]
+    #(0, _), #(_, 0) -> [horizontal <> vertical <> "A"]
+    _, _ ->
+      case vertical, horizontal {
+        "", "" -> ["A"]
+        "", _ -> [horizontal <> "A"]
+        _, "" -> [vertical <> "A"]
+        _, _ -> [vertical <> horizontal <> "A", horizontal <> vertical <> "A"]
+      }
   }
 }
 
@@ -177,4 +220,10 @@ fn get_numeric_position(key: String) -> Result(Point, Nil) {
     "A" -> Ok(#(2, 0))
     _ -> Error(Nil)
   }
+}
+
+fn get_numeric_portions(s: String) -> Int {
+  string.drop_end(s, 1)
+  |> int.parse
+  |> result.unwrap(0)
 }
