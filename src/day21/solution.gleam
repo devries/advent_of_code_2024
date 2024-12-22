@@ -67,9 +67,8 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
       decode_numeric_sequence(line)
       |> decode_directional_sequence
       |> decode_directional_sequence
-      |> list.map(fn(l) { string.length(l) })
-      |> list.reduce(int.min)
-      |> result.unwrap(0)
+      |> string.length
+
     get_numeric_portions(line) * length
   })
   |> int.sum
@@ -85,10 +84,8 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
   list.map(lines, fn(line) {
     let length =
       decode_numeric_sequence(line)
-      |> todo
-      |> list.map(fn(l) { string.length(l) })
-      |> list.reduce(int.min)
-      |> result.unwrap(0)
+      |> count_directional_sequence(25, cache)
+
     get_numeric_portions(line) * length
   })
   |> int.sum
@@ -96,41 +93,39 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
   |> Ok
 }
 
-fn decode_numeric_sequence(sequence: String) -> List(String) {
+fn decode_numeric_sequence(sequence: String) -> String {
   string.to_graphemes("A" <> sequence)
   |> list.window_by_2
   |> list.map(fn(pair) { find_motion_numeric(pair.0, pair.1) })
-  |> list.reduce(fn(solutions, next_set) {
-    solutions
-    |> list.map(fn(s) {
-      next_set
-      |> list.map(fn(n) { s <> n })
-    })
-    |> list.flatten
-  })
-  |> result.unwrap([])
+  |> string.join("")
 }
 
-fn decode_directional_sequence(sequences: List(String)) -> List(String) {
-  sequences
-  |> list.map(fn(sequence) {
-    string.to_graphemes("A" <> sequence)
-    |> list.window_by_2
-    |> list.map(fn(pair) { find_motion_directional(pair.0, pair.1) })
-    |> list.reduce(fn(solutions, next_set) {
-      solutions
-      |> list.map(fn(s) {
-        next_set
-        |> list.map(fn(n) { s <> n })
+fn decode_directional_sequence(sequence: String) -> String {
+  string.to_graphemes("A" <> sequence)
+  |> list.window_by_2
+  |> list.map(fn(pair) { find_motion_directional(pair.0, pair.1) })
+  |> string.join("")
+}
+
+fn count_directional_sequence(
+  starting: String,
+  depth: Int,
+  cache: memoize.Cache(#(String, String, Int), Int),
+) -> Int {
+  case depth {
+    0 -> string.length(starting)
+    _ -> {
+      string.to_graphemes("A" <> starting)
+      |> list.window_by_2
+      |> list.map(fn(pair) {
+        count_motion_directional(pair.0, pair.1, depth, cache)
       })
-      |> list.flatten
-    })
-    |> result.unwrap([])
-  })
-  |> list.flatten
+      |> int.sum
+    }
+  }
 }
 
-fn find_motion_directional(start: String, push: String) -> List(String) {
+fn find_motion_directional(start: String, push: String) -> String {
   let assert Ok(start_pos) = get_directional_position(start)
   let assert Ok(push_pos) = get_directional_position(push)
 
@@ -149,20 +144,55 @@ fn find_motion_directional(start: String, push: String) -> List(String) {
     order.Gt -> string.join(list.repeat("v", -up_count), "")
   }
 
-  case start_pos, push_pos {
-    #(_, 1), #(0, _) -> [vertical <> horizontal <> "A"]
-    #(0, _), #(_, 1) -> [horizontal <> vertical <> "A"]
-    _, _ ->
-      case vertical, horizontal {
-        "", "" -> ["A"]
-        "", _ -> [horizontal <> "A"]
-        _, "" -> [vertical <> "A"]
-        _, _ -> [vertical <> horizontal <> "A", horizontal <> vertical <> "A"]
-      }
+  case start_pos, push_pos, optimal_first_motion(start_pos, push_pos) {
+    #(_, 1), #(0, _), _ -> vertical <> horizontal <> "A"
+    #(0, _), #(_, 1), _ -> horizontal <> vertical <> "A"
+    _, _, Horizontal -> horizontal <> vertical <> "A"
+    _, _, Vertical -> vertical <> horizontal <> "A"
   }
 }
 
-fn find_motion_numeric(start: String, push: String) -> List(String) {
+fn count_motion_directional(
+  start: String,
+  push: String,
+  depth: Int,
+  cache: memoize.Cache(#(String, String, Int), Int),
+) -> Int {
+  use <- memoize.cache_check(cache, #(start, push, depth))
+
+  let assert Ok(start_pos) = get_directional_position(start)
+  let assert Ok(push_pos) = get_directional_position(push)
+
+  let right_count = push_pos.0 - start_pos.0
+  let up_count = push_pos.1 - start_pos.1
+
+  let horizontal = case int.compare(start_pos.0, push_pos.0) {
+    order.Lt -> string.join(list.repeat(">", right_count), "")
+    order.Eq -> ""
+    order.Gt -> string.join(list.repeat("<", -right_count), "")
+  }
+
+  let vertical = case int.compare(start_pos.1, push_pos.1) {
+    order.Lt -> string.join(list.repeat("^", up_count), "")
+    order.Eq -> ""
+    order.Gt -> string.join(list.repeat("v", -up_count), "")
+  }
+
+  let next = case
+    start_pos,
+    push_pos,
+    optimal_first_motion(start_pos, push_pos)
+  {
+    #(_, 1), #(0, _), _ -> vertical <> horizontal <> "A"
+    #(0, _), #(_, 1), _ -> horizontal <> vertical <> "A"
+    _, _, Horizontal -> horizontal <> vertical <> "A"
+    _, _, Vertical -> vertical <> horizontal <> "A"
+  }
+
+  count_directional_sequence(next, depth - 1, cache)
+}
+
+fn find_motion_numeric(start: String, push: String) -> String {
   let assert Ok(start_pos) = get_numeric_position(start)
   let assert Ok(push_pos) = get_numeric_position(push)
 
@@ -181,16 +211,43 @@ fn find_motion_numeric(start: String, push: String) -> List(String) {
     order.Gt -> string.join(list.repeat("v", -up_count), "")
   }
 
-  case start_pos, push_pos {
-    #(_, 0), #(0, _) -> [vertical <> horizontal <> "A"]
-    #(0, _), #(_, 0) -> [horizontal <> vertical <> "A"]
-    _, _ ->
-      case vertical, horizontal {
-        "", "" -> ["A"]
-        "", _ -> [horizontal <> "A"]
-        _, "" -> [vertical <> "A"]
-        _, _ -> [vertical <> horizontal <> "A", horizontal <> vertical <> "A"]
-      }
+  case start_pos, push_pos, optimal_first_motion(start_pos, push_pos) {
+    #(_, 0), #(0, _), _ -> vertical <> horizontal <> "A"
+    #(0, _), #(_, 0), _ -> horizontal <> vertical <> "A"
+    _, _, Horizontal -> horizontal <> vertical <> "A"
+    _, _, Vertical -> vertical <> horizontal <> "A"
+  }
+}
+
+type Motion {
+  Horizontal
+  Vertical
+}
+
+// It looked like the best case solution, based on part 1 was to
+// do motion of the directional farthest from the "A" key first, then
+// the nearer one second. But it also seems like if you are going
+// right and up you need to start with vertical motion.
+// I have no idea why.
+fn optimal_first_motion(start: Point, end: Point) -> Motion {
+  case int.compare(start.0, end.0), int.compare(start.1, end.1) {
+    order.Lt, order.Lt -> {
+      // Right and up
+      Vertical
+    }
+    order.Gt, order.Lt -> {
+      // Left and up
+      Horizontal
+    }
+    order.Lt, order.Gt -> {
+      // Right and down
+      Vertical
+    }
+    order.Gt, order.Gt -> {
+      // Left and down
+      Horizontal
+    }
+    _, _ -> Horizontal
   }
 }
 

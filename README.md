@@ -1,7 +1,7 @@
 # Advent of Code 2024
 
 [![Tests](https://github.com/devries/advent_of_code_2024/actions/workflows/test.yml/badge.svg)](https://github.com/devries/advent_of_code_2024/actions/workflows/test.yml)
-[![Stars: 43](https://img.shields.io/badge/⭐_Stars-43-yellow)](https://adventofcode.com/2024)
+[![Stars: 44](https://img.shields.io/badge/⭐_Stars-44-yellow)](https://adventofcode.com/2024)
 
 This year I am going to try to do Advent of Code in  [Gleam](https://gleam.run).
 To run a day's problems use the command
@@ -39,5 +39,5 @@ information.
 - [Day 18](https://adventofcode.com/2024/day/18): [⭐ ⭐ solution](src/day18/solution.gleam)
 - [Day 19](https://adventofcode.com/2024/day/19): [⭐ ⭐ solution](src/day19/solution.gleam)
 - [Day 20](https://adventofcode.com/2024/day/20): [⭐ ⭐ solution](src/day20/solution.gleam)
-- [Day 21](https://adventofcode.com/2024/day/21): [⭐    solution](src/day21/solution.gleam)
+- [Day 21](https://adventofcode.com/2024/day/21): [⭐ ⭐ solution](src/day21/solution.gleam)
 - [Day 22](https://adventofcode.com/2024/day/22): [⭐ ⭐ solution](src/day22/solution.gleam)
