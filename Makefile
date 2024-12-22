@@ -1,4 +1,4 @@
-.PHONY: test run start day01 day02 day03 day04 day05 day06 day07 day08 day09 day10 day11 day12 day13 day14 day15 day16 day17 day18 day19 day20 day21 day22 day23 day24 day25
+.PHONY: docker test run start day01 day02 day03 day04 day05 day06 day07 day08 day09 day10 day11 day12 day13 day14 day15 day16 day17 day18 day19 day20 day21 day22 day23 day24 day25
 
 .DEFAULT_GOAL := test
 
@@ -45,3 +45,7 @@ day25: test/day25_test.gleam src/day25/solution.gleam
 
 # Start today's problem
 start: test/day$(shell date +%d)_test.gleam src/day$(shell date +%d)/solution.gleam
+
+# Build a docker container
+docker:
+	docker build -t devries/aoc2024:latest .
