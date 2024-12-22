@@ -94,6 +94,13 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
   |> Ok
 }
 
+//
+// Each sequence consists of moves from one location (starting at A) to the destination
+// and then pushing the button. In some cases the destination may be the same as the
+// starting location. Use window_by_2 to get pairs of starting and ending location and
+// prepend with the starting location A.
+//
+
 fn decode_numeric_sequence(sequence: String) -> String {
   string.to_graphemes("A" <> sequence)
   |> list.window_by_2
@@ -108,6 +115,13 @@ fn decode_directional_sequence(sequence: String) -> String {
   |> string.join("")
 }
 
+//
+// For part 2 we cannot save the whole sequence, so I do a depth first
+// search with memoization and count the number of moves by robots further
+// up the chain required to complete the given move.
+// Memoize on start position, end position, and depth of the chain of
+// directional button pushing robots.
+//
 fn count_directional_sequence(
   starting: String,
   depth: Int,
@@ -126,6 +140,14 @@ fn count_directional_sequence(
   }
 }
 
+//
+// It is more efficient to do all horizontal moves at once
+// and all vertical moves at once (just repeatedly pressing A for
+// the next robot up). I thought that would be it, but it turns
+// out the order of horizontal vs vertical matters. I saw that
+// in the scratch section above. This optimal ordering is in the
+// optimal_first_motion function.
+//
 fn find_motion_directional(start: String, push: String) -> String {
   let assert Ok(start_pos) = get_directional_position(start)
   let assert Ok(push_pos) = get_directional_position(push)
@@ -153,6 +175,7 @@ fn find_motion_directional(start: String, push: String) -> String {
   }
 }
 
+// Memoized version that does DFS and returns counts.
 fn count_motion_directional(
   start: String,
   push: String,

@@ -99,12 +99,17 @@ fn find_sequence_sets(start: Int, length: Int) -> List(#(Int, List(Int))) {
 
   let sequences = differences(prices) |> list.window(4)
 
+  // Zip into tuples the price, and the sequence to get to that price.
   list.zip(list.drop(prices, 4), sequences)
 }
 
 fn build_values(sequences: List(#(Int, List(Int)))) -> Dict(List(Int), Int) {
   list.fold(sequences, dict.new(), fn(d, tup) {
     let #(price, sequence) = tup
+
+    // In this case I am only interested in the first sequence that
+    // results in the given price. If I encounter the sequence again
+    // in the list I skip it and do not add it to the dictionary.
 
     case dict.get(d, sequence) {
       Ok(_) -> d
