@@ -1,5 +1,4 @@
 import day22/solution
-import gleam/io
 import gleam/list
 import gleam/string
 import gleam/yielder
