@@ -143,18 +143,18 @@ fn grow(group: Set(String), connset: Dict(String, Set(String))) -> Set(String) {
       case u {
         None -> {
           dict.get(connset, vertex)
-          |> result.unwrap(set.new())
+          |> result.lazy_unwrap(set.new)
           |> Some
         }
         Some(u) ->
           set.intersection(
             u,
-            dict.get(connset, vertex) |> result.unwrap(set.new()),
+            dict.get(connset, vertex) |> result.lazy_unwrap(set.new),
           )
           |> Some
       }
     })
-    |> option.unwrap(set.new())
+    |> option.lazy_unwrap(set.new)
     |> set.difference(group)
     |> set.to_list
     |> list.first
