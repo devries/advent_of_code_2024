@@ -72,7 +72,8 @@ fn add_towel_acc(
       }
     }
     [first, ..rest] -> {
-      let existing = dict.get(root, first) |> result.unwrap(Next(dict.new()))
+      let existing =
+        dict.get(root, first) |> result.lazy_unwrap(fn() { Next(dict.new()) })
 
       case existing {
         Next(subvalues) -> {
