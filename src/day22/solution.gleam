@@ -2,6 +2,7 @@ import gleam/dict.{type Dict}
 import gleam/int
 import gleam/io
 import gleam/list
+import gleam/order
 import gleam/pair
 import gleam/result
 import gleam/yielder
@@ -57,8 +58,12 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
       })
     })
     |> dict.to_list
-    |> list.sort(fn(a, b) { int.compare(a.1, b.1) })
-    |> list.last
+    |> list.reduce(fn(max, o) {
+      case int.compare(o.1, max.1) {
+        order.Gt -> o
+        _ -> max
+      }
+    })
     |> result.replace_error("Something went wront")
   })
 
