@@ -43,19 +43,11 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
 // bn OR dn -> cn
 //
 
-// After thinking about it, I just traced out the gates by hand and used some editor macros
-// I got the following substitutions for my input:
-//
-// z05 <> gdd
-// z09 <> cwt
-// z37 <> pqt
-// jmv <> css
-
-// css,cwt,gdd,jmv,pqt,z05,z09,z37
-
 // Part 2
+// Easiest way to do this was to do some sorting and use editor macros to pull
+// together the relevant half adder and full adders into groups.
 pub fn solve_p2(_lines: List(String)) -> Result(String, String) {
-  Ok("css,cwt,gdd,jmv,pqt,z05,z09,z37")
+  Ok("solved by hand in inputs/day24-resolved.txt")
 }
 
 type Gate {
