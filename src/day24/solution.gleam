@@ -15,7 +15,7 @@ pub fn main() {
       // If the file was converting into a list of lines
       // successfully then run each part of the problem
       aoc_utils.run_part_and_print("Part 1", fn() { solve_p1(lines) })
-      aoc_utils.run_part_and_print("Part 2", fn() { solve_p2(lines, 45) })
+      aoc_utils.run_part_and_print("Part 2", fn() { solve_p2(lines) })
     }
     Error(_) -> io.println("Error reading file")
   }
@@ -43,20 +43,19 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
 // bn OR dn -> cn
 //
 
-// Part 2
-pub fn solve_p2(lines: List(String), bits: Int) -> Result(String, String) {
-  use #(wires, gates) <- result.map(parse(lines))
+// After thinking about it, I just traced out the gates by hand and used some editor macros
+// I got the following substitutions for my input:
+//
+// z05 <> gdd
+// z09 <> cwt
+// z37 <> pqt
+// jmv <> css
 
-  let avals = find_a(gates)
-  let bvals = find_b(gates)
-  list.range(0, bits)
-  |> list.map(fn(i) {
-    let a = dict.get(avals, i)
-    let b = dict.get(bvals, i)
-    io.debug(#(i, a, b))
-    trace_gate(gates, i, "")
-  })
-  todo
+// css,cwt,gdd,jmv,pqt,z05,z09,z37
+
+// Part 2
+pub fn solve_p2(_lines: List(String)) -> Result(String, String) {
+  Ok("css,cwt,gdd,jmv,pqt,z05,z09,z37")
 }
 
 type Gate {
@@ -154,121 +153,9 @@ fn resolve_gate(
   }
 }
 
-fn find_a(gates: List(Gate)) -> Dict(Int, String) {
-  list.fold(gates, dict.new(), fn(d, gate) {
-    case gate {
-      Xor(a, _, c) -> {
-        case string.starts_with(a, "x") || string.starts_with(a, "y") {
-          True -> {
-            let val = string.drop_start(a, 1) |> int.parse |> result.unwrap(0)
-            dict.insert(d, val, c)
-          }
-          False -> d
-        }
-      }
-      _ -> d
-    }
-  })
-}
-
-fn find_b(gates: List(Gate)) -> Dict(Int, String) {
-  list.fold(gates, dict.new(), fn(d, gate) {
-    case gate {
-      And(a, _, c) -> {
-        case string.starts_with(a, "x") || string.starts_with(a, "y") {
-          True -> {
-            let val = string.drop_start(a, 1) |> int.parse |> result.unwrap(0)
-            dict.insert(d, val, c)
-          }
-          False -> d
-        }
-      }
-      _ -> d
-    }
-  })
-}
-
 fn get_number(wires: Dict(String, Int), prefix: String) -> Int {
   dict.to_list(wires)
   |> list.filter(fn(tup) { string.starts_with(tup.0, prefix) })
   |> list.sort(fn(tupa, tupb) { string.compare(tupb.0, tupa.0) })
   |> list.fold(0, fn(value, tup) { { value * 2 } + tup.1 })
-}
-
-// Create an initial condition for testing a bit on x and
-// y with the other bits off.
-fn setup_test(
-  bit: Int,
-  max_bit: Int,
-  x: Int,
-  y: Int,
-  carry: Int,
-) -> Dict(String, Int) {
-  list.range(0, max_bit)
-  |> list.map(fn(i) {
-    let xkey = "x" <> string.pad_start(int.to_string(i), 2, "0")
-    let ykey = "y" <> string.pad_start(int.to_string(i), 2, "0")
-
-    case i {
-      v if v == bit - 1 -> {
-        case carry {
-          1 -> [#(xkey, 1), #(ykey, 1)]
-          _ -> [#(xkey, 0), #(ykey, 0)]
-        }
-      }
-
-      v if v == bit -> {
-        [#(xkey, x), #(ykey, y)]
-      }
-
-      _ -> [#(xkey, 0), #(ykey, 0)]
-    }
-  })
-  |> list.flatten
-  |> dict.from_list
-}
-
-fn get_test_result(wires: Dict(String, Int), bit: Int) -> #(Int, Int) {
-  let zkey = "z" <> string.pad_start(int.to_string(bit), 2, "0")
-  let ckey = "z" <> string.pad_start(int.to_string(bit + 1), 2, "0")
-
-  #(
-    dict.get(wires, zkey) |> result.unwrap(0),
-    dict.get(wires, ckey) |> result.unwrap(0),
-  )
-}
-
-//
-// Half adder
-// x0 XOR y0 -> z0
-// x0 AND y0 -> c0
-//
-// Full adder
-// xn XOR yn -> an
-// xn AND yn -> bn
-// an XOR cn-1 -> zn
-// an AND cn-1 -> dn
-// bn OR dn -> cn
-//
-fn trace_gate(gates: List(Gate), i: Int, c: String) {
-  let x = "x" <> string.pad_start(int.to_string(i), 2, "0")
-  let y = "y" <> string.pad_start(int.to_string(i), 2, "0")
-  let z = "z" <> string.pad_start(int.to_string(i), 2, "0")
-
-  case i {
-    0 -> {
-      find_gates(gates, x, y)
-    }
-    _ -> {
-      find_gates(gates, x, y)
-      |> io.debug
-    }
-  }
-}
-
-fn find_gates(gates: List(Gate), i1: String, i2: String) -> List(Gate) {
-  gates
-  |> list.filter(fn(g) {
-    { g.input1 == i1 && g.input2 == i2 } || { g.input1 == i2 && g.input2 == i1 }
-  })
 }
