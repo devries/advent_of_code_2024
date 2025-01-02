@@ -55,42 +55,39 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
 pub fn solve_p2(lines: List(String)) -> Result(String, String) {
   use #(_, gates) <- result.map(parse(lines))
 
-  // Take the gates and create a dict by output
   gates
-  |> list.map(fn(g) { #(g.output, g) })
-  |> dict.from_list
-  |> dict.filter(fn(k, v) {
-    // filter the dictionary for gates that do not match a half adder followed by
+  |> list.filter(fn(g) {
+    // filter the gates for gates that do not match a half adder followed by
     // a bunch of full adders.
-    case k, v {
+    case g {
       // Outputs should be from Xor gates, except the last one
-      "z45", Or(_, _, _) -> False
-      "z" <> _, Xor(_, _, _) -> False
-      "z" <> _, _ -> True
+      Or(_, _, "z45") -> False
+      Xor(_, _, "z" <> _) -> False
+      Or(_, _, "z" <> _) | And(_, _, "z" <> _) -> True
 
       // Xor gates for inputs should connect to AND and XOR gates, but not OR gates
-      _, Xor("x" <> _, "y" <> _, _) | _, Xor("y" <> _, "x" <> _, _) -> {
-        find_gates_with_input(gates, k)
+      Xor("x" <> _, "y" <> _, output) | Xor("y" <> _, "x" <> _, output) -> {
+        find_gates_with_input(gates, output)
         |> has_or_gates
       }
 
       // Any other Xor gate is not valid
-      _, Xor(_, _, _) -> True
+      Xor(_, _, _) -> True
 
       // And gates should have Or gates after them, except for the
       // output of the half-adder.
       // This assumes the output of the And from the first half adder
       // is not swapped.
-      _, And("x00", _, _) | _, And(_, "x00", _) -> False
-      _, And(_, _, _) -> {
-        find_gates_with_input(gates, k)
+      And("x00", _, _) | And(_, "x00", _) -> False
+      And(_, _, output) -> {
+        find_gates_with_input(gates, output)
         |> has_or_gates
         |> bool.negate
       }
-      _, _ -> False
+      _ -> False
     }
   })
-  |> dict.keys
+  |> list.map(fn(g) { g.output })
   |> list.sort(string.compare)
   |> string.join(",")
 }
