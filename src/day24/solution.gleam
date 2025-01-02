@@ -1,3 +1,4 @@
+import gleam/bool
 import gleam/dict.{type Dict}
 import gleam/int
 import gleam/io
@@ -46,8 +47,52 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
 // Part 2
 // Easiest way to do this was to do some sorting and use editor macros to pull
 // together the relevant half adder and full adders into groups.
-pub fn solve_p2(_lines: List(String)) -> Result(String, String) {
-  Ok("solved by hand in inputs/day24-resolved.txt")
+// I then went looking at results and tried to implement a solution based on
+// this explanation: https://old.reddit.com/r/adventofcode/comments/1hla5ql/2024_day_24_part_2_a_guide_on_the_idea_behind_the/
+// and from a really great pattern matching example in the Gleam discord by
+// super makioka sisters. This is essentially a copy of their example which
+// I implemented in order to better understand it.
+pub fn solve_p2(lines: List(String)) -> Result(String, String) {
+  use #(_, gates) <- result.map(parse(lines))
+
+  // Take the gates and create a dict by output
+  gates
+  |> list.map(fn(g) { #(g.output, g) })
+  |> dict.from_list
+  |> dict.filter(fn(k, v) {
+    // filter the dictionary for gates that do not match a half adder followed by
+    // a bunch of full adders.
+    case k, v {
+      // Outputs should be from Xor gates, except the last one
+      "z45", Or(_, _, _) -> False
+      "z" <> _, Xor(_, _, _) -> False
+      "z" <> _, _ -> True
+
+      // Xor gates for inputs should connect to AND and XOR gates, but not OR gates
+      _, Xor("x" <> _, "y" <> _, _) | _, Xor("y" <> _, "x" <> _, _) -> {
+        find_gates_with_input(gates, k)
+        |> has_or_gates
+      }
+
+      // Any other Xor gate is not valid
+      _, Xor(_, _, _) -> True
+
+      // And gates should have Or gates after them, except for the
+      // output of the half-adder.
+      // This assumes the output of the And from the first half adder
+      // is not swapped.
+      _, And("x00", _, _) | _, And(_, "x00", _) -> False
+      _, And(_, _, _) -> {
+        find_gates_with_input(gates, k)
+        |> has_or_gates
+        |> bool.negate
+      }
+      _, _ -> False
+    }
+  })
+  |> dict.keys
+  |> list.sort(string.compare)
+  |> string.join(",")
 }
 
 type Gate {
@@ -150,4 +195,23 @@ fn get_number(wires: Dict(String, Int), prefix: String) -> Int {
   |> list.filter(fn(tup) { string.starts_with(tup.0, prefix) })
   |> list.sort(fn(tupa, tupb) { string.compare(tupb.0, tupa.0) })
   |> list.fold(0, fn(value, tup) { { value * 2 } + tup.1 })
+}
+
+fn find_gates_with_input(gates: List(Gate), input: String) -> List(Gate) {
+  gates
+  |> list.filter(fn(g) {
+    case g.input1, g.input2 {
+      w, _ if w == input -> True
+      _, w if w == input -> True
+      _, _ -> False
+    }
+  })
+}
+
+fn has_or_gates(gates: List(Gate)) -> Bool {
+  case gates {
+    [Or(_, _, _), ..] -> True
+    [_, ..rest] -> has_or_gates(rest)
+    [] -> False
+  }
 }
