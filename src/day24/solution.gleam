@@ -58,7 +58,8 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
   gates
   |> list.filter(fn(g) {
     // filter the gates for gates that do not match a half adder followed by
-    // a bunch of full adders.
+    // a bunch of full adders. This does not account for any swaps from the output
+    // of an adder with the same component of another adder.
     case g {
       // Outputs should be from Xor gates, except the last one
       Or(_, _, "z45") -> False
