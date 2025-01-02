@@ -197,13 +197,7 @@ fn get_number(wires: Dict(String, Int), prefix: String) -> Int {
 
 fn find_gates_with_input(gates: List(Gate), input: String) -> List(Gate) {
   gates
-  |> list.filter(fn(g) {
-    case g.input1, g.input2 {
-      w, _ if w == input -> True
-      _, w if w == input -> True
-      _, _ -> False
-    }
-  })
+  |> list.filter(fn(g) { g.input1 == input || g.input2 == input })
 }
 
 fn has_or_gates(gates: List(Gate)) -> Bool {
