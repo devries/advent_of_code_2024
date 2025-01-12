@@ -78,17 +78,13 @@ pub fn step(start: Int) -> Int {
 }
 
 fn step_times(start: Int, times: Int) -> Int {
-  case times {
-    0 -> start
-    n -> step_times(step(start), n - 1)
-  }
+  yielder.iterate(start, step)
+  |> yielder.at(times)
+  |> result.unwrap(0)
 }
 
 fn price_sequence(start: Int, length: Int) -> List(Int) {
-  yielder.unfold(start, fn(v) {
-    let r = step(v)
-    yielder.Next(v, r)
-  })
+  yielder.iterate(start, step)
   |> yielder.take(length + 1)
   |> yielder.to_list
   |> list.map(fn(v) { v % 10 })
