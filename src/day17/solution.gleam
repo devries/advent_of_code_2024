@@ -163,11 +163,10 @@ fn step(c: Computer, prog: Dict(Int, Int)) -> Running {
     // out instruction
     Ok(5), Ok(v) -> {
       Run(
-        Computer(
-          ..c,
-          ip: c.ip + 2,
-          output_buffer: [combo(c, v) % 8, ..c.output_buffer],
-        ),
+        Computer(..c, ip: c.ip + 2, output_buffer: [
+          combo(c, v) % 8,
+          ..c.output_buffer
+        ]),
       )
     }
 
